@@ -229,11 +229,14 @@ function attackOrcs() {
 }
 
 // ====================================================================
-// ЛОГИКА ДВИЖЕНИЯ ОРКОВ (ИСПРАВЛЕНА!)
+// ЛОГИКА ДВИЖЕНИЯ ОРКОВ (ФИНАЛЬНО ИСПРАВЛЕНА!)
 // ====================================================================
 
 function handleOrcMovement() {
-    const COLLISION_PADDING = 3; 
+    // Уменьшаем радиус проверки, чтобы Орки могли "срезать" углы
+    const COLLISION_PADDING = 1; 
+    // Допуск для перехода к следующему тайлу, в пикселях
+    const ARRIVAL_TOLERANCE = 10; 
 
     orcs.forEach(orc => {
         
@@ -252,62 +255,53 @@ function handleOrcMovement() {
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         orc.slowEffect = 0;
-        // Увеличена базовая скорость, чтобы Орки были более подвижны
         const effectiveSpeed = (orc.baseSpeed || 1.5) * (1 - orc.slowEffect); 
         
-        // 1. Проверяем, нужно ли двигаться дальше
-        if (distance > effectiveSpeed) { 
-            let moveX = dx / distance * effectiveSpeed;
-            let moveY = dy / distance * effectiveSpeed;
-            const halfSize = orc.size / 2;
-            let newX = orc.x + moveX;
-            let newY = orc.y + moveY;
-            
-            // 2. ИСПРАВЛЕННАЯ ЛОГИКА КОЛЛИЗИЙ (более мягкая)
-
-            let blockedX = false;
-            if (moveX !== 0) {
-                const checkX = newX + (moveX > 0 ? halfSize - COLLISION_PADDING : -halfSize + COLLISION_PADDING); 
-                if (isWall(checkX, orc.y - halfSize + COLLISION_PADDING) || 
-                    isWall(checkX, orc.y + halfSize - COLLISION_PADDING))   
-                {
-                    blockedX = true;
-                }
-            }
-
-            let blockedY = false;
-            if (moveY !== 0) {
-                const checkY = newY + (moveY > 0 ? halfSize - COLLISION_PADDING : -halfSize + COLLISION_PADDING); 
-                if (isWall(orc.x - halfSize + COLLISION_PADDING, checkY) || 
-                    isWall(orc.x + halfSize - COLLISION_PADDING, checkY))   
-                {
-                    blockedY = true;
-                }
-            }
-            
-            // 3. Применяем движение: если заблокировано по одной оси, позволяем движение по другой.
-            if (!blockedX) {
-                orc.x = newX;
-            }
-            if (!blockedY) {
-                orc.y = newY;
-            }
-            
-            // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: Если Орк застрял (заблокирован по обеим осям), 
-            // но близок к цели, принудительно перемещаем его к цели.
-            if (blockedX && blockedY && distance < TILE_SIZE * 0.75) {
-                 orc.x = targetX;
-                 orc.y = targetY;
-                 orc.pathIndex++;
-            }
-
-
-        } else {
+        // 1. Проверяем, достигнут ли тайл (с допуском)
+        if (distance <= ARRIVAL_TOLERANCE) { 
             // Орк достиг цели, принудительно устанавливаем позицию и переходим к следующему
             orc.x = targetX;
             orc.y = targetY;
             orc.pathIndex++;
+            return;
         }
+
+        // 2. Движение
+        let moveX = dx / distance * effectiveSpeed;
+        let moveY = dy / distance * effectiveSpeed;
+        const halfSize = orc.size / 2;
+        let newX = orc.x + moveX;
+        let newY = orc.y + moveY;
+        
+        // 3. Коллизии
+        let blockedX = false;
+        if (moveX !== 0) {
+            const checkX = newX + (moveX > 0 ? halfSize - COLLISION_PADDING : -halfSize + COLLISION_PADDING); 
+            if (isWall(checkX, orc.y - halfSize + COLLISION_PADDING) || 
+                isWall(checkX, orc.y + halfSize - COLLISION_PADDING))   
+            {
+                blockedX = true;
+            }
+        }
+
+        let blockedY = false;
+        if (moveY !== 0) {
+            const checkY = newY + (moveY > 0 ? halfSize - COLLISION_PADDING : -halfSize + COLLISION_PADDING); 
+            if (isWall(orc.x - halfSize + COLLISION_PADDING, checkY) || 
+                isWall(orc.x + halfSize + COLLISION_PADDING, checkY))   
+            {
+                blockedY = true;
+            }
+        }
+        
+        // 4. Применяем движение:
+        if (!blockedX) {
+            orc.x = newX;
+        }
+        if (!blockedY) {
+            orc.y = newY;
+        }
+
     });
 }
 
@@ -457,7 +451,7 @@ function startNextWave() {
                 y: path[0].y * TILE_SIZE + TILE_SIZE / 2,
                 health: orcHealth, 
                 maxHealth: orcHealth, 
-                baseSpeed: 1.5, // Теперь Орки быстрее
+                baseSpeed: 1.5, 
                 slowEffect: 0, 
                 pathIndex: 1, 
                 size: 15,
@@ -505,4 +499,156 @@ function drawMap() {
 
             if (x === path[0].x && y === path[0].y) { 
                 ctx.fillStyle = '#004B82'; 
-                ctx.fillRect(
+                ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
+                ctx.fillStyle = 'white';
+                ctx.fillText('SPAWN', tileX + TILE_SIZE / 2, tileY + TILE_SIZE / 2 + 5);
+            }
+            if (x === rift.x / TILE_SIZE - 0.5 && y === rift.y / TILE_SIZE - 0.5) { 
+                ctx.fillStyle = '#8B0000'; 
+                ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
+                ctx.fillStyle = 'white';
+                ctx.fillText('RIFT', tileX + TILE_SIZE / 2, tileY + TILE_SIZE / 2 + 5);
+            }
+        });
+    });
+
+    traps.forEach(trap => {
+        const drawX = trap.x - cameraOffset.x;
+        const drawY = trap.y - cameraOffset.y;
+
+        ctx.fillStyle = trap.color;
+        ctx.globalAlpha = 0.9;
+        ctx.beginPath();
+        ctx.rect(drawX - TILE_SIZE/2 + 4, drawY - TILE_SIZE/2 + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+        
+        ctx.fillStyle = 'white';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(TRAPS_DATA[trap.type].icon, drawX, drawY + 5);
+    });
+}
+
+function drawOrcs() {
+    if (!ctx) return;
+    orcs.forEach(orc => {
+        const drawX = orc.x - cameraOffset.x;
+        const drawY = orc.y - cameraOffset.y;
+        
+        if (drawX + orc.size < 0 || drawX - orc.size > LOGICAL_CANVAS_WIDTH ||
+            drawY + orc.size < 0 || drawY - orc.size > LOGICAL_CANVAS_HEIGHT) {
+            return;
+        }
+
+        ctx.fillStyle = '#3CB371'; 
+        ctx.beginPath();
+        ctx.arc(drawX, drawY, orc.size / 2, 0, Math.PI * 2); 
+        ctx.fill();
+        
+        const barWidth = orc.size * 2;
+        const barHeight = 3;
+        const barY = drawY - orc.size * 2;
+        
+        ctx.fillStyle = 'red';
+        ctx.fillRect(drawX - orc.size, barY, barWidth, barHeight);
+        ctx.fillStyle = 'lime';
+        ctx.fillRect(drawX - orc.size, barY, barWidth * (orc.health / orc.maxHealth), barHeight);
+    });
+}
+
+function drawGuardian() {
+    if (!ctx) return;
+    
+    const drawX = guardian.x - cameraOffset.x;
+    const drawY = guardian.y - cameraOffset.y;
+
+    if (guardian.isAttacking) {
+        ctx.strokeStyle = '#FFD700'; 
+        ctx.lineWidth = 5;
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath();
+        ctx.arc(drawX, drawY, guardian.attackRange, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+    }
+
+    ctx.fillStyle = '#4169E1'; 
+    ctx.beginPath();
+    ctx.arc(drawX, drawY, guardian.size / 2, 0, Math.PI * 2); 
+    ctx.fill();
+}
+
+// ====================================================================
+// ЦИКЛ ИГРЫ И ИНИЦИАЛИЗАЦИЯ 
+// ====================================================================
+
+function update() {
+    if (riftHealth <= 0) {
+        showMessage('💔 ПОРАЖЕНИЕ! Рифт разрушен!');
+        gameRunning = false;
+        return;
+    }
+    
+    handleGuardianMovement(); 
+    calculateCameraOffset(); 
+
+    if (!gameRunning) return;
+    
+    handleOrcMovement(); 
+    handleTraps();
+}
+
+function gameLoop() {
+    if (!ctx) {
+        requestAnimationFrame(gameLoop);
+        return;
+    }
+
+    update();
+    drawMap();
+    drawOrcs();
+    drawGuardian();
+    requestAnimationFrame(gameLoop);
+}
+
+function resizeCanvas() {
+    if (!canvas) return;
+
+    const container = document.getElementById('gameContainer');
+    const displayWidth = container ? container.clientWidth : window.innerWidth; 
+    
+    canvas.width = LOGICAL_CANVAS_WIDTH;
+    canvas.height = LOGICAL_CANVAS_HEIGHT;
+
+    const aspectRatio = LOGICAL_CANVAS_HEIGHT / LOGICAL_CANVAS_WIDTH;
+    const displayHeight = displayWidth * aspectRatio;
+    canvas.style.height = `${displayHeight}px`;
+
+    calculateCameraOffset();
+}
+
+
+function initGame() {
+    canvas = document.getElementById('gameCanvas'); 
+    
+    if (!canvas) {
+        console.error("Canvas с id 'gameCanvas' не найден. Убедитесь, что он есть в HTML.");
+        return;
+    }
+    
+    ctx = canvas.getContext('2d');
+    
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    calculateCameraOffset(); 
+    updateInfo();
+    setupTouchControls(); 
+    setupEventHandlers(); 
+    showMessage('Управляйте Стражем (WASD/Сенсор), чтобы защитить Рифт! Начните волну.');
+    
+    gameLoop();
+}
+
+document.addEventListener('DOMContentLoaded', initGame);
