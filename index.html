@@ -71,4 +71,65 @@
             position: fixed; 
             bottom: 20px;
             right: 20px;
-            
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background-color: #d9534f;
+            border: 3px solid #fff;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h2>ORCS MUST DIE! 2D Прототип (Canvas)</h2>
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="info-panel">
+            <div class="info-item">
+                <p><strong>Золото:</strong> <span id="gold">1000</span></p>
+            </div>
+            <div class="info-item">
+                <p><strong>Рифт (Жизни):</strong> <span id="rift-health">20</span></p>
+            </div>
+            <div class="info-item">
+                <p><strong>Текущая Волна:</strong> <span id="current-wave">0</span></p>
+            </div>
+        </div>
+        
+        <div class="controls-panel">
+            <button class="trap-btn" onclick="setTrapMode('ARROW')">A Стрелы (50)</button>
+            <button class="trap-btn" onclick="setTrapMode('TAR')">T Смола (25)</button>
+            <button class="trap-btn" onclick="setTrapMode('SPRING')">S Батут (75)</button>
+            <button class="wave-btn" onclick="startNextWave()">Начать Волну!</button>
+        </div>
+
+        <p id="controls" style="text-align: center; padding: 5px; font-size: 12px; color: #aaa;">
+            Управление Стражем: **Сенсорный джойстик** (или WASD на ПК), **Кнопка Атака** (или ПРОБЕЛ на ПК).
+        </p>
+        <p id="message" style="text-align: center; padding: 5px; color: yellow;"></p>
+    </div>
+
+    <div id="touch-controls">
+        <div style="display: flex;">
+            <div class="touch-btn" id="up-left">/</div>
+            <div class="touch-btn" id="up">W</div>
+            <div class="touch-btn" id="up-right">\</div>
+        </div>
+        <div style="display: flex;">
+            <div class="touch-btn" id="left">A</div>
+            <div class="touch-btn" style="opacity: 0;"></div>
+            <div class="touch-btn" id="right">D</div>
+        </div>
+        <div style="display: flex;">
+            <div class="touch-btn" id="down-left">\</div>
+            <div class="touch-btn" id="down">S</div>
+            <div class="touch-btn" id="down-right">/</div>
+        </div>
+    </div>
+    
+    <button id="attack-btn">УДАР</button>
+
+    <script src="game.js"></script>
+</body>
+</html>
