@@ -229,12 +229,13 @@ function attackOrcs() {
 }
 
 // ====================================================================
-// §­§°§¤§ª§¬§¡ §¥§£§ª§¨§¦§¯§ª§Á §°§²§¬§°§£ (§¶§ª§¯§¡§­§¾§¯§° §ª§³§±§²§¡§£§­§¦§¯§¡!)
+// §­§°§¤§ª§¬§¡ §¥§£§ª§¨§¦§¯§ª§Á §°§²§¬§°§£ (§¬§²§ª§´§ª§¹§¦§³§¬§ª §±§¦§²§¦§±§ª§³§¡§¯§¡!)
 // ====================================================================
 
 function handleOrcMovement() {
     const COLLISION_PADDING = 1; 
-    const ARRIVAL_TOLERANCE = 10; 
+    // §µ§Ó§Ö§Ý§Ú§é§Ö§ß§ß§í§Û §Õ§à§á§å§ã§Ü: §°§â§Ü §Õ§à§Ý§Ø§Ö§ß §Ò§í§ä§î §Ó §á§â§Ö§Õ§Ö§Ý§Ñ§ç 1/4 §ä§Ñ§Û§Ý§Ñ §à§ä §è§Ö§ß§ä§â§Ñ
+    const ARRIVAL_TOLERANCE = TILE_SIZE / 4; 
 
     orcs.forEach(orc => {
         
@@ -252,32 +253,33 @@ function handleOrcMovement() {
         const dy = targetY - orc.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        orc.slowEffect = 0;
-        const effectiveSpeed = (orc.baseSpeed || 1.5) * (1 - orc.slowEffect); 
-        
         // 1. §±§â§à§Ó§Ö§â§ñ§Ö§Þ, §Õ§à§ã§ä§Ú§Ô§ß§å§ä §Ý§Ú §ä§Ñ§Û§Ý (§ã §Õ§à§á§å§ã§Ü§à§Þ)
         if (distance <= ARRIVAL_TOLERANCE) { 
-            // §°§â§Ü §Õ§à§ã§ä§Ú§Ô §è§Ö§Ý§Ú
+            // §°§â§Ü §Õ§à§ã§ä§Ú§Ô §è§Ö§Ý§Ú, §á§â§Ú§ß§å§Õ§Ú§ä§Ö§Ý§î§ß§à §å§ã§ä§Ñ§ß§Ñ§Ó§Ý§Ú§Ó§Ñ§Ö§Þ §á§à§Ù§Ú§è§Ú§ð §Ú §á§Ö§â§Ö§ç§à§Õ§Ú§Þ §Ü §ã§Ý§Ö§Õ§å§ð§ë§Ö§Þ§å
             orc.x = targetX;
             orc.y = targetY;
             orc.pathIndex++;
             return;
         }
 
-        // 2. §²§Ñ§ã§ã§é§Ú§ä§í§Ó§Ñ§Ö§Þ §Õ§Ó§Ú§Ø§Ö§ß§Ú§Ö
-        let moveX = dx / distance * effectiveSpeed;
-        let moveY = dy / distance * effectiveSpeed;
-        const halfSize = orc.size / 2;
-
-        // 3. §±§â§à§Ó§Ö§â§Ü§Ñ §Ü§à§Ý§Ý§Ú§Ù§Ú§Û §Ú §á§â§Ú§Þ§Ö§ß§Ö§ß§Ú§Ö §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ
-
-        let attemptedX = orc.x + moveX;
-        let attemptedY = orc.y + moveY;
+        orc.slowEffect = 0;
+        const effectiveSpeed = (orc.baseSpeed || 1.5) * (1 - orc.slowEffect); 
         
-        let blockedX = false;
-        let blockedY = false;
+        // 2. §¯§à§â§Þ§Ñ§Ý§Ú§Ù§à§Ó§Ñ§ß§ß§í§Û §Ó§Ö§Ü§ä§à§â §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ
+        const normDx = dx / distance;
+        const normDy = dy / distance;
+        
+        // 3. §¨§Ö§Ý§Ñ§Ö§Þ§í§Ö §ã§Þ§Ö§ë§Ö§ß§Ú§ñ
+        let moveX = normDx * effectiveSpeed;
+        let moveY = normDy * effectiveSpeed;
 
-        // §±§â§à§Ó§Ö§â§Ü§Ñ §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ §á§à X
+        const halfSize = orc.size / 2;
+        let finalMoveX = 0;
+        let finalMoveY = 0;
+
+        // 4. §±§â§à§Ó§Ö§â§Ü§Ñ §Ü§à§Ý§Ý§Ú§Ù§Ú§Û §á§à X: §á§í§ä§Ñ§Ö§Þ§ã§ñ §Õ§Ó§Ú§Ô§Ñ§ä§î§ã§ñ §á§à X
+        let attemptedX = orc.x + moveX;
+        let blockedX = false;
         if (moveX !== 0) {
             const checkX = attemptedX + (moveX > 0 ? halfSize - COLLISION_PADDING : -halfSize + COLLISION_PADDING); 
             if (isWall(checkX, orc.y - halfSize + COLLISION_PADDING) || 
@@ -286,8 +288,13 @@ function handleOrcMovement() {
                 blockedX = true;
             }
         }
+        if (!blockedX) {
+            finalMoveX = moveX;
+        }
 
-        // §±§â§à§Ó§Ö§â§Ü§Ñ §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ §á§à Y
+        // 5. §±§â§à§Ó§Ö§â§Ü§Ñ §Ü§à§Ý§Ý§Ú§Ù§Ú§Û §á§à Y: §á§í§ä§Ñ§Ö§Þ§ã§ñ §Õ§Ó§Ú§Ô§Ñ§ä§î§ã§ñ §á§à Y
+        let attemptedY = orc.y + moveY;
+        let blockedY = false;
         if (moveY !== 0) {
             const checkY = attemptedY + (moveY > 0 ? halfSize - COLLISION_PADDING : -halfSize + COLLISION_PADDING); 
             if (isWall(orc.x - halfSize + COLLISION_PADDING, checkY) || 
@@ -296,22 +303,19 @@ function handleOrcMovement() {
                 blockedY = true;
             }
         }
-        
-        // §¬§²§ª§´§ª§¹§¦§³§¬§°§¦ §ª§³§±§²§¡§£§­§¦§¯§ª§¦: §±§í§ä§Ñ§Ö§Þ§ã§ñ §á§â§Ú§Þ§Ö§ß§Ú§ä§î §Õ§Ó§Ú§Ø§Ö§ß§Ú§Ö §á§à X, §Õ§Ñ§Ø§Ö §Ö§ã§Ý§Ú Y §Ù§Ñ§Ò§Ý§à§Ü§Ú§â§à§Ó§Ñ§ß, §Ú §ß§Ñ§à§Ò§à§â§à§ä.
-        if (!blockedX) {
-            orc.x = attemptedX;
-        } else {
-            // §¦§ã§Ý§Ú X §Ù§Ñ§Ò§Ý§à§Ü§Ú§â§à§Ó§Ñ§ß, §ß§à Y §ã§Ó§à§Ò§à§Õ§Ö§ß, §Ú§ã§á§à§Ý§î§Ù§å§Ö§Þ §ä§Ö§Ü§å§ë§Ö§Ö Y (§ä.§Ö. "§ã§Ü§à§Ý§î§Ù§Ú§Þ")
-            orc.x = orc.x; 
-        }
-
         if (!blockedY) {
-            orc.y = attemptedY;
-        } else {
-            // §¦§ã§Ý§Ú Y §Ù§Ñ§Ò§Ý§à§Ü§Ú§â§à§Ó§Ñ§ß, §ß§à X §ã§Ó§à§Ò§à§Õ§Ö§ß, §Ú§ã§á§à§Ý§î§Ù§å§Ö§Þ §ä§Ö§Ü§å§ë§Ö§Ö X (§ä.§Ö. "§ã§Ü§à§Ý§î§Ù§Ú§Þ")
-            orc.y = orc.y;
+            finalMoveY = moveY;
         }
+        
+        // 6. §±§â§Ú§Þ§Ö§ß§ñ§Ö§Þ §ä§à§Ý§î§Ü§à §ä§Ö §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ, §Ü§à§ä§à§â§í§Ö §ß§Ö §Ù§Ñ§Ò§Ý§à§Ü§Ú§â§à§Ó§Ñ§ß§í.
+        orc.x += finalMoveX;
+        orc.y += finalMoveY;
 
+        // §¦§ã§Ý§Ú §°§â§Ü §Ù§Ñ§Ò§Ý§à§Ü§Ú§â§à§Ó§Ñ§ß §Ú §ß§Ñ§ç§à§Õ§Ú§ä§ã§ñ §à§é§Ö§ß§î §Ò§Ý§Ú§Ù§Ü§à §Ü §è§Ö§Ý§Ú (§ß§à §ß§Ö §á§à§á§Ñ§Õ§Ñ§Ö§ä §Ó §Õ§à§á§å§ã§Ü §Ú§Ù-§Ù§Ñ §Ù§Ñ§Ü§Ý§Ú§ß§Ú§Ó§Ñ§ß§Ú§ñ),
+        // §á§â§Ú§ß§å§Õ§Ú§ä§Ö§Ý§î§ß§à §á§Ö§â§Ö§Ü§Ý§ð§é§Ú§ä§î §è§Ö§Ý§î, §é§ä§à§Ò§í §à§ß §ß§Ö §Ù§Ñ§ã§ä§â§ñ§Ý §ß§Ñ§Ó§ã§Ö§Ô§Õ§Ñ.
+        if (blockedX && blockedY && distance < TILE_SIZE * 0.75) {
+             orc.pathIndex++;
+        }
     });
 }
 
