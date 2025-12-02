@@ -1,19 +1,19 @@
 // ====================================================================
-// ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И ИНИЦИАЛИЗАЦИЯ
+// 袚袥袨袘袗袥鞋袧蝎袝 袩袝袪袝袦袝袧袧蝎袝 袠 袠袧袠笑袠袗袥袠袟袗笑袠携
 // ====================================================================
 
 let canvas;
 let ctx;
 
-// Увеличенные логические размеры карты для демонстрации работы камеры:
+// 校胁械谢懈褔械薪薪褘械 谢芯谐懈褔械褋泻懈械 褉邪蟹屑械褉褘 泻邪褉褌褘 写谢褟 写械屑芯薪褋褌褉邪褑懈懈 褉邪斜芯褌褘 泻邪屑械褉褘:
 const TILE_WIDTH = 24; 
 const TILE_HEIGHT = 18;
 const TILE_SIZE = 40; 
-// Логические размеры Canvas (размер окна, в котором мы смотрим)
+// 袥芯谐懈褔械褋泻懈械 褉邪蟹屑械褉褘 Canvas (褉邪蟹屑械褉 芯泻薪邪, 胁 泻芯褌芯褉芯屑 屑褘 褋屑芯褌褉懈屑)
 const LOGICAL_CANVAS_WIDTH = 16 * TILE_SIZE; // 640
 const LOGICAL_CANVAS_HEIGHT = 12 * TILE_SIZE; // 480
 
-// Размер всей карты в пикселях (960x720)
+// 袪邪蟹屑械褉 胁褋械泄 泻邪褉褌褘 胁 锌懈泻褋械谢褟褏 (960x720)
 const MAP_WIDTH = TILE_WIDTH * TILE_SIZE; 
 const MAP_HEIGHT = TILE_HEIGHT * TILE_SIZE; 
 
@@ -30,13 +30,13 @@ let cameraOffset = { x: 0, y: 0 };
 
 
 // ====================================================================
-// ДАННЫЕ ИГРЫ: КАРТА И ПУТИ
+// 袛袗袧袧蝎袝 袠袚袪蝎: 袣袗袪孝袗 袠 袩校孝袠
 // ====================================================================
 
-// Расширенная карта (24x18)
+// 袪邪褋褕懈褉械薪薪邪褟 泻邪褉褌邪 (24x18)
 const mapGrid = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], // Вход (1, 1)
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], // 袙褏芯写 (1, 1)
     [1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], 
     [1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1],
     [1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
@@ -45,7 +45,7 @@ const mapGrid = [
     [1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1],
     [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1], // Рифт (22, 16)
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1], // 袪懈褎褌 (22, 16)
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1], 
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1],
     [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
@@ -55,17 +55,17 @@ const mapGrid = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] 
 ];
 
-// Узлы пути (координаты тайлов)
+// 校蟹谢褘 锌褍褌懈 (泻芯芯褉写懈薪邪褌褘 褌邪泄谢芯胁)
 const PATHS = {
-    // Путь D: Верхний, затем вниз
+    // 袩褍褌褜 D: 袙械褉褏薪懈泄, 蟹邪褌械屑 胁薪懈蟹
     'D': [
         {x: 1, y: 1}, 
         {x: 14, y: 1},  
         {x: 14, y: 15},  
         {x: 22, y: 15},
-        {x: 22, y: 16} // RIFT (Конечная точка)
+        {x: 22, y: 16} // RIFT (袣芯薪械褔薪邪褟 褌芯褔泻邪)
     ],
-    // Путь H: Нижний, затем вверх и вправо
+    // 袩褍褌褜 H: 袧懈卸薪懈泄, 蟹邪褌械屑 胁胁械褉褏 懈 胁锌褉邪胁芯
     'H': [
         {x: 1, y: 1}, 
         {x: 1, y: 16}, 
@@ -90,9 +90,9 @@ const guardian = {
 };
 
 const TRAPS_DATA = {
-    'A': {cost: 50, damage: 5, color: '#e74c3c', uses: 1, name: 'Стрелы', icon: 'A'},
-    'T': {cost: 25, damage: 0, color: '#95a5a6', slow: 0.5, uses: Infinity, name: 'Смола', icon: 'T'},
-    'S': {cost: 75, damage: 0, color: '#3498db', push: 100, uses: 1, name: 'Батут', icon: 'S'}
+    'A': {cost: 50, damage: 5, color: '#e74c3c', uses: 1, name: '小褌褉械谢褘', icon: 'A'},
+    'T': {cost: 25, damage: 0, color: '#95a5a6', slow: 0.5, uses: Infinity, name: '小屑芯谢邪', icon: 'T'},
+    'S': {cost: 75, damage: 0, color: '#3498db', push: 100, uses: 1, name: '袘邪褌褍褌', icon: 'S'}
 };
 
 const rift = {
@@ -102,7 +102,7 @@ const rift = {
 };
 
 // ====================================================================
-// УПРАВЛЕНИЕ (КЛАВИАТУРА И СЕНСОР)
+// 校袩袪袗袙袥袝袧袠袝 (袣袥袗袙袠袗孝校袪袗 袠 小袝袧小袨袪)
 // ====================================================================
 
 const touchControlsMap = {
@@ -121,7 +121,6 @@ function setupTouchControls() {
              keys[code] = isStart;
         } 
         
-        // Добавление обработки для кнопок, которые не имеют прямого code
         if (id === 'up') keys['KeyW'] = isStart;
         if (id === 'down') keys['KeyS'] = isStart;
         if (id === 'left') keys['KeyA'] = isStart;
@@ -134,7 +133,7 @@ function setupTouchControls() {
         button.addEventListener('mousedown', (e) => handleControl(e, true));
         button.addEventListener('mouseup', (e) => handleControl(e, false));
         button.addEventListener('touchcancel', (e) => handleControl(e, false));
-        button.addEventListener('mouseleave', (e) => { // Обработка, если палец соскользнул
+        button.addEventListener('mouseleave', (e) => { 
             if (e.buttons === 0) handleControl(e, false);
         });
     });
@@ -143,7 +142,6 @@ function setupTouchControls() {
 
 window.addEventListener('keydown', (e) => { 
     keys[e.code] = true; 
-    // Предотвращение прокрутки страницы при WASD/Space
     if (['KeyW', 'KeyS', 'KeyA', 'KeyD', 'Space'].includes(e.code)) {
         e.preventDefault();
     }
@@ -154,7 +152,7 @@ window.addEventListener('keyup', (e) => {
 });
 
 // ====================================================================
-// ОБЩИЕ ФУНКЦИИ И УТИЛИТЫ
+// 袨袘些袠袝 肖校袧袣笑袠袠 袠 校孝袠袥袠孝蝎
 // ====================================================================
 
 function showMessage(text) {
@@ -175,19 +173,19 @@ function updateInfo() {
 }
 
 const isWall = (x, y) => {
-    // Проверка границ карты
+    // 袩褉芯胁械褉泻邪 谐褉邪薪懈褑 泻邪褉褌褘
     if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) return true;
     
     const tileX = Math.floor(x / TILE_SIZE);
     const tileY = Math.floor(y / TILE_SIZE);
-    // Проверка, что индекс существует
+    // 袩褉芯胁械褉泻邪, 褔褌芯 懈薪写械泻褋 褋褍褖械褋褌胁褍械褌
     if (!mapGrid[tileY] || mapGrid[tileY].length <= tileX) return true; 
 
-    return mapGrid[tileY][tileX] === 1; // 1 = стена
+    return mapGrid[tileY][tileX] === 1; // 1 = 褋褌械薪邪
 };
 
 // ====================================================================
-// ЛОГИКА ДВИЖЕНИЯ СТРАЖА И КОЛЛИЗИЙ 
+// 袥袨袚袠袣袗 袛袙袠袞袝袧袠携 小孝袪袗袞袗 袠 袣袨袥袥袠袟袠袡 
 // ====================================================================
 
 function handleGuardianMovement() {
@@ -204,7 +202,7 @@ function handleGuardianMovement() {
     let newX = guardian.x + dx;
     let newY = guardian.y + dy;
     
-    // Проверка коллизий для X
+    // 袩褉芯胁械褉泻邪 泻芯谢谢懈蟹懈泄 写谢褟 X
     let canMoveX = true;
     if (dx !== 0) {
         const checkX = newX + (dx > 0 ? halfSize - 1 : -halfSize + 1); 
@@ -215,7 +213,7 @@ function handleGuardianMovement() {
         }
     }
     
-    // Проверка коллизий для Y
+    // 袩褉芯胁械褉泻邪 泻芯谢谢懈蟹懈泄 写谢褟 Y
     let canMoveY = true;
     if (dy !== 0) {
         const checkY = newY + (dy > 0 ? halfSize - 1 : -halfSize + 1); 
@@ -233,12 +231,12 @@ function handleGuardianMovement() {
         guardian.y = newY;
     }
 
-    // Ограничение движения границами карты
+    // 袨谐褉邪薪懈褔械薪懈械 写胁懈卸械薪懈褟 谐褉邪薪懈褑邪屑懈 泻邪褉褌褘
     const padding = halfSize;
     guardian.x = Math.max(padding, Math.min(MAP_WIDTH - padding, guardian.x));
     guardian.y = Math.max(padding, Math.min(MAP_HEIGHT - padding, guardian.y));
 
-    // Логика атаки
+    // 袥芯谐懈泻邪 邪褌邪泻懈
     if (keys['Space'] && guardian.attackTimer <= 0) {
         guardian.isAttacking = true;
         guardian.attackTimer = guardian.attackCooldown;
@@ -246,7 +244,7 @@ function handleGuardianMovement() {
     } else if (guardian.attackTimer > 0) {
         guardian.attackTimer--;
     } else {
-        guardian.isAttacking = false; // Сбрасываем флаг после отката
+        guardian.isAttacking = false;
     }
 }
 
@@ -261,24 +259,24 @@ function attackOrcs() {
 }
 
 // ====================================================================
-// ЛОГИКА ДВИЖЕНИЯ ОРКОВ (ФИНАЛЬНЫЙ НАДЕЖНЫЙ ВАРИАНТ)
+// 袥袨袚袠袣袗 袛袙袠袞袝袧袠携 袨袪袣袨袙 (肖袠袧袗袥鞋袧蝎袡 袧袗袛袝袞袧蝎袡 袙袗袪袠袗袧孝)
 // ====================================================================
 
 function handleOrcMovement() {
-    // Увеличенный допуск: Орк должен быть в пределах TILE_SIZE/4 (10px) от центра, чтобы "прыгнуть"
-    const ARRIVAL_TOLERANCE = TILE_SIZE / 4; 
+    // 校胁械谢懈褔械薪薪褘泄 写芯锌褍褋泻: 袨褉泻 锌械褉械泻谢褞褔懈褌褋褟 薪邪 褋谢械写褍褞褖褍褞 褌芯褔泻褍, 泻邪泻 褌芯谢褜泻芯 芯泻邪卸械褌褋褟 胁 锌褉械写械谢邪褏 笑袝袥袨袚袨 褌邪泄谢邪.
+    const ARRIVAL_TOLERANCE = TILE_SIZE; 
 
     orcs.forEach(orc => {
         const currentPath = orc.currentPath;
 
         if (!currentPath || orc.pathIndex >= currentPath.length) {
-            orc.health = -1; // Убить орка, чтобы его отфильтровали
+            orc.health = -1; 
             riftHealth -= 1;
             return;
         }
 
         const targetTile = currentPath[orc.pathIndex];
-        // Точные пиксельные координаты центра целевого тайла
+        // 孝芯褔薪褘械 锌懈泻褋械谢褜薪褘械 泻芯芯褉写懈薪邪褌褘 褑械薪褌褉邪 褑械谢械胁芯谐芯 褌邪泄谢邪
         const targetX = targetTile.x * TILE_SIZE + TILE_SIZE / 2;
         const targetY = targetTile.y * TILE_SIZE + TILE_SIZE / 2;
         
@@ -286,12 +284,12 @@ function handleOrcMovement() {
         const dy = targetY - orc.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        orc.slowEffect = 0; // На данный момент игнорируем ловушки
+        orc.slowEffect = 0; 
         const effectiveSpeed = (orc.baseSpeed || 1.5) * (1 - orc.slowEffect); 
         
-        // 1. Проверяем, достигнут ли тайл (если близки, переключаем цель)
+        // 1. 袩褉芯胁械褉褟械屑, 写芯褋褌懈谐薪褍褌 谢懈 褌邪泄谢 (械褋谢懈 斜谢懈蟹泻懈, 锌械褉械泻谢褞褔邪械屑 褑械谢褜)
         if (distance <= ARRIVAL_TOLERANCE) { 
-            // Телепортируем на точный центр, чтобы избежать субпиксельных ошибок
+            // 孝械谢械锌芯褉褌懈褉褍械屑 薪邪 褌芯褔薪褘泄 褑械薪褌褉 (targetX, targetY)
             orc.x = targetX;
             orc.y = targetY;
             orc.pathIndex++;
@@ -303,30 +301,31 @@ function handleOrcMovement() {
         const absDx = Math.abs(dx);
         const absDy = Math.abs(dy);
 
-        // 2. ГАРАНТИРОВАННОЕ ОСЕВОЕ ДВИЖЕНИЕ: Двигаемся ТОЛЬКО по доминирующей оси
+        // 2. 袚袗袪袗袧孝袠袪袨袙袗袧袧袨袝 袨小袝袙袨袝 袛袙袠袞袝袧袠袝
         if (absDx > absDy) {
-            // Двигаемся по X
+            // 袛胁懈谐邪械屑褋褟 锌芯 X
             moveX = dx > 0 ? effectiveSpeed : -effectiveSpeed;
         } else if (absDy > absDx) {
-            // Двигаемся по Y
+            // 袛胁懈谐邪械屑褋褟 锌芯 Y
             moveY = dy > 0 ? effectiveSpeed : -effectiveSpeed;
         } else {
-             // Если расстояния равны, продолжаем по X (или по предыдущей оси)
+             // 袝褋谢懈 褉邪褋褋褌芯褟薪懈褟 褉邪胁薪褘 (锌芯胁芯褉芯褌薪褘泄 褍蟹械谢), 写邪械屑 写胁懈谐邪褌褜褋褟 锌芯 芯斜械懈屑 芯褋褟屑
              moveX = dx > 0 ? effectiveSpeed : -effectiveSpeed;
+             moveY = dy > 0 ? effectiveSpeed : -effectiveSpeed;
         }
         
-        // Корректировка, чтобы не проскочить цель (ограничиваем движение оставшимся расстоянием)
+        // 袣芯褉褉械泻褌懈褉芯胁泻邪, 褔褌芯斜褘 薪械 锌褉芯褋泻芯褔懈褌褜 褑械谢褜 
         moveX = Math.min(absDx, Math.abs(moveX)) * Math.sign(dx);
         moveY = Math.min(absDy, Math.abs(moveY)) * Math.sign(dy);
 
-        // 3. Применяем движение БЕЗ ПРОВЕРОК КОЛЛИЗИЙ (т.к. путь известен)
+        // 3. 袩褉懈屑械薪褟械屑 写胁懈卸械薪懈械 袘袝袟 袩袪袨袙袝袪袨袣 袣袨袥袥袠袟袠袡 写谢褟 袨褉泻芯胁
         orc.x += moveX;
         orc.y += moveY;
     });
 }
 
 function handleTraps() {
-    // Фильтруем мертвых орков
+    // 肖懈谢褜褌褉褍械屑 屑械褉褌胁褘褏 芯褉泻芯胁
     orcs = orcs.filter(orc => {
         if (orc.health <= 0) {
             gold += (orc.reward || 10);
@@ -336,9 +335,9 @@ function handleTraps() {
         return true;
     });
 
-    // Условие конца волны
+    // 校褋谢芯胁懈械 泻芯薪褑邪 胁芯谢薪褘
     if (orcs.length === 0 && currentWave > 0 && gameRunning) {
-        showMessage(`✅ Волна ${currentWave} успешно отражена!`);
+        showMessage(`鉁� 袙芯谢薪邪 ${currentWave} 褍褋锌械褕薪芯 芯褌褉邪卸械薪邪!`);
         gameRunning = false;
         gold += 100;
         updateInfo();
@@ -347,22 +346,22 @@ function handleTraps() {
 
 
 // ====================================================================
-// УПРАВЛЕНИЕ ИГРОВЫМ ПРОЦЕССОМ И КАМЕРА
+// 校袩袪袗袙袥袝袧袠袝 袠袚袪袨袙蝎袦 袩袪袨笑袝小小袨袦 袠 袣袗袦袝袪袗
 // ====================================================================
 
 function calculateCameraOffset() {
-    // Страж должен быть в центре видимой области
+    // 小褌褉邪卸 写芯谢卸械薪 斜褘褌褜 胁 褑械薪褌褉械 胁懈写懈屑芯泄 芯斜谢邪褋褌懈
     const targetX = guardian.x - LOGICAL_CANVAS_WIDTH / 2;
     const targetY = guardian.y - LOGICAL_CANVAS_HEIGHT / 2;
     
-    // Ограничиваем сдвиг границами карты
+    // 袨谐褉邪薪懈褔懈胁邪械屑 褋写胁懈谐 谐褉邪薪懈褑邪屑懈 泻邪褉褌褘
     cameraOffset.x = Math.max(0, Math.min(targetX, MAP_WIDTH - LOGICAL_CANVAS_WIDTH));
     cameraOffset.y = Math.max(0, Math.min(targetY, MAP_HEIGHT - LOGICAL_CANVAS_HEIGHT));
 }
 
 function setTrapMode(type) {
     trapMode = type;
-    showMessage(`Режим: Установка ловушки "${TRAPS_DATA[type].name}". Нажмите на пустой тайл.`);
+    showMessage(`袪械卸懈屑: 校褋褌邪薪芯胁泻邪 谢芯胁褍褕泻懈 "${TRAPS_DATA[type].name}". 袧邪卸屑懈褌械 薪邪 锌褍褋褌芯泄 褌邪泄谢.`);
 }
 
 function placeTrap(absX, absY) {
@@ -377,16 +376,16 @@ function placeTrap(absX, absY) {
         y: y * TILE_SIZE + TILE_SIZE / 2
     };
 
-    // Проверка спауна и рифта (должны быть в середине тайла для проверки)
+    // 袩褉芯胁械褉泻邪 褋锌邪褍薪邪 懈 褉懈褎褌邪
     const isSpawn = (x === PATHS.D[0].x && y === PATHS.D[0].y); 
     const isRiftTile = (x === rift.x / TILE_SIZE - 0.5 && y === rift.y / TILE_SIZE - 0.5);
     
     if (y < 0 || y >= mapGrid.length || x < 0 || x >= mapGrid[0].length) {
-        showMessage('Нельзя ставить ловушку за пределами карты!');
+        showMessage('袧械谢褜蟹褟 褋褌邪胁懈褌褜 谢芯胁褍褕泻褍 蟹邪 锌褉械写械谢邪屑懈 泻邪褉褌褘!');
         return;
     }
 
-    // Проверка, что тайл пустой (0) и не является спауном/рифтом
+    // 袩褉芯胁械褉泻邪, 褔褌芯 褌邪泄谢 锌褍褋褌芯泄 (0) 懈 薪械 褟胁谢褟械褌褋褟 褋锌邪褍薪芯屑/褉懈褎褌芯屑
     if (mapGrid[y][x] === 0 && 
         !isSpawn &&
         !isRiftTile &&
@@ -405,29 +404,27 @@ function placeTrap(absX, absY) {
                 push: trapData.push || 0,
                 cooldown: 0
             });
-            showMessage(`Ловушка "${trapData.name}" установлена!`);
+            showMessage(`袥芯胁褍褕泻邪 "${trapData.name}" 褍褋褌邪薪芯胁谢械薪邪!`);
             updateInfo();
         } else {
-            showMessage('Недостаточно золота!');
+            showMessage('袧械写芯褋褌邪褌芯褔薪芯 蟹芯谢芯褌邪!');
         }
     } else {
-        showMessage('Нельзя ставить ловушку на стены, Рифт/Спаун или уже занятый тайл!');
+        showMessage('袧械谢褜蟹褟 褋褌邪胁懈褌褜 谢芯胁褍褕泻褍 薪邪 褋褌械薪褘, 袪懈褎褌/小锌邪褍薪 懈谢懈 褍卸械 蟹邪薪褟褌褘泄 褌邪泄谢!');
     }
-    trapMode = null; // Сброс режима установки ловушки
+    trapMode = null; 
 }
 
 function handleCanvasClick(event) {
     if (!trapMode || !canvas) return;
     const rect = canvas.getBoundingClientRect();
     
-    // Получаем координаты клика относительно канваса
     const clientX = event.clientX || (event.touches ? event.touches[0].clientX : 0);
     const clientY = event.clientY || (event.touches ? event.touches[0].clientY : 0);
 
     const clickX = (clientX - rect.left) * (canvas.width / rect.width);
     const clickY = (clientY - rect.top) * (canvas.height / rect.height);
 
-    // Преобразуем координаты в абсолютные координаты карты
     const absMapX = clickX + cameraOffset.x;
     const absMapY = clickY + cameraOffset.y;
     
@@ -437,7 +434,6 @@ function handleCanvasClick(event) {
 function setupEventHandlers() {
     if (!canvas) return;
     
-    // Обработка клика/тапа для установки ловушек
     canvas.addEventListener('click', handleCanvasClick);
     canvas.addEventListener('touchstart', (e) => {
         if (trapMode) {
@@ -446,7 +442,6 @@ function setupEventHandlers() {
         }
     }, { passive: false });
     
-    // Обработка кнопок ловушек
     document.querySelectorAll('.controls-panel .trap-btn').forEach(button => {
         button.addEventListener('click', (e) => {
             const type = e.currentTarget.getAttribute('data-type');
@@ -456,7 +451,6 @@ function setupEventHandlers() {
         });
     });
 
-    // Обработка кнопки "Начать Волну"
     const waveBtn = document.querySelector('.wave-btn');
     if(waveBtn) {
         waveBtn.addEventListener('click', startNextWave);
@@ -465,20 +459,19 @@ function setupEventHandlers() {
 
 function startNextWave() {
     if (gameRunning) {
-        showMessage('Волна уже идёт!');
+        showMessage('袙芯谢薪邪 褍卸械 懈写褢褌!');
         return;
     }
     
     currentWave++;
     gameRunning = true;
-    showMessage(`⚡ Волна ${currentWave} началась!`);
+    showMessage(`鈿� 袙芯谢薪邪 ${currentWave} 薪邪褔邪谢邪褋褜!`);
 
     const pathKeys = ['D', 'H']; 
     const numOrcs = 5 + currentWave * 2;
     const orcHealth = 100 + currentWave * 10;
     
     for (let i = 0; i < numOrcs; i++) {
-        // Случайный выбор пути
         const pathKey = pathKeys[Math.floor(Math.random() * pathKeys.length)];
         const selectedPath = PATHS[pathKey];
         
@@ -488,27 +481,26 @@ function startNextWave() {
                 y: selectedPath[0].y * TILE_SIZE + TILE_SIZE / 2,
                 health: orcHealth, 
                 maxHealth: orcHealth, 
-                baseSpeed: 1.5, // Базовая скорость
+                baseSpeed: 1.5,
                 slowEffect: 0, 
                 pathIndex: 1, 
                 size: 15, 
                 reward: 10,
                 currentPath: selectedPath 
             });
-        }, i * 500); // Интервал спауна 0.5 секунды
+        }, i * 500); 
     }
     updateInfo();
 }
 
 
 // ====================================================================
-// ОТОБРАЖЕНИЕ (DRAW)
+// 袨孝袨袘袪袗袞袝袧袠袝 (DRAW)
 // ====================================================================
 
 function drawMap() {
     if (!ctx) return;
     
-    // Очистка только видимой области
     ctx.clearRect(0, 0, LOGICAL_CANVAS_WIDTH, LOGICAL_CANVAS_HEIGHT); 
 
     mapGrid.forEach((row, y) => {
@@ -516,7 +508,6 @@ function drawMap() {
             const tileX = x * TILE_SIZE - cameraOffset.x;
             const tileY = y * TILE_SIZE - cameraOffset.y;
             
-            // Отрисовка только видимых тайлов
             if (tileX + TILE_SIZE < 0 || tileX > LOGICAL_CANVAS_WIDTH ||
                 tileY + TILE_SIZE < 0 || tileY > LOGICAL_CANVAS_HEIGHT) {
                 return;
@@ -533,7 +524,6 @@ function drawMap() {
                 ctx.strokeRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
             }
             
-            // Надписи SPAWN и RIFT
             ctx.fillStyle = 'white';
             ctx.font = '16px Arial';
             ctx.textAlign = 'center';
@@ -553,7 +543,7 @@ function drawMap() {
         });
     });
 
-    // Отрисовка ловушек
+    // 袨褌褉懈褋芯胁泻邪 谢芯胁褍褕械泻
     traps.forEach(trap => {
         const drawX = trap.x - cameraOffset.x;
         const drawY = trap.y - cameraOffset.y;
@@ -588,7 +578,7 @@ function drawOrcs() {
         ctx.arc(drawX, drawY, orc.size / 2, 0, Math.PI * 2); 
         ctx.fill();
         
-        // Полоска здоровья
+        // 袩芯谢芯褋泻邪 蟹写芯褉芯胁褜褟
         const barWidth = orc.size * 2;
         const barHeight = 3;
         const barY = drawY - orc.size * 2;
@@ -606,7 +596,7 @@ function drawGuardian() {
     const drawX = guardian.x - cameraOffset.x;
     const drawY = guardian.y - cameraOffset.y;
 
-    // Отрисовка радиуса атаки
+    // 袨褌褉懈褋芯胁泻邪 褉邪写懈褍褋邪 邪褌邪泻懈
     if (guardian.isAttacking && guardian.attackTimer > 0) {
         ctx.strokeStyle = '#FFD700'; 
         ctx.lineWidth = 5;
@@ -617,7 +607,7 @@ function drawGuardian() {
         ctx.globalAlpha = 1;
     }
 
-    // Отрисовка Стража
+    // 袨褌褉懈褋芯胁泻邪 小褌褉邪卸邪
     ctx.fillStyle = '#4169E1'; 
     ctx.beginPath();
     ctx.arc(drawX, drawY, guardian.size / 2, 0, Math.PI * 2); 
@@ -625,12 +615,12 @@ function drawGuardian() {
 }
 
 // ====================================================================
-// ЦИКЛ ИГРЫ И ИНИЦИАЛИЗАЦИЯ 
+// 笑袠袣袥 袠袚袪蝎 袠 袠袧袠笑袠袗袥袠袟袗笑袠携 
 // ====================================================================
 
 function update() {
     if (riftHealth <= 0) {
-        showMessage('💔 ПОРАЖЕНИЕ! Рифт разрушен!');
+        showMessage('馃挃 袩袨袪袗袞袝袧袠袝! 袪懈褎褌 褉邪蟹褉褍褕械薪!');
         gameRunning = false;
         return;
     }
@@ -663,11 +653,9 @@ function resizeCanvas() {
     const container = document.getElementById('gameContainer');
     const displayWidth = container ? container.clientWidth : window.innerWidth; 
     
-    // Устанавливаем логические размеры
     canvas.width = LOGICAL_CANVAS_WIDTH;
     canvas.height = LOGICAL_CANVAS_HEIGHT;
 
-    // Масштабируем CSS-размер для адаптивности
     const aspectRatio = LOGICAL_CANVAS_HEIGHT / LOGICAL_CANVAS_WIDTH;
     const displayHeight = displayWidth * aspectRatio;
     canvas.style.height = `${displayHeight}px`;
@@ -680,7 +668,7 @@ function initGame() {
     canvas = document.getElementById('gameCanvas'); 
     
     if (!canvas) {
-        console.error("Canvas с id 'gameCanvas' не найден.");
+        console.error("Canvas 褋 id 'gameCanvas' 薪械 薪邪泄写械薪.");
         return;
     }
     
