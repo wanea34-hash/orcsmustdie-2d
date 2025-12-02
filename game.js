@@ -8,8 +8,13 @@ let ctx;
 const TILE_WIDTH = 16; 
 const TILE_HEIGHT = 12;
 const TILE_SIZE = 40; 
-const CANVAS_WIDTH = TILE_WIDTH * TILE_SIZE; 
-const CANVAS_HEIGHT = TILE_HEIGHT * TILE_SIZE; 
+// §²§Ñ§Ù§Þ§Ö§â Canvas §ä§Ö§á§Ö§â§î §Þ§à§Ø§Ö§ä §Ò§í§ä§î §Þ§Ö§ß§î§ê§Ö, §é§Ö§Þ §Ó§ã§ñ §Ü§Ñ§â§ä§Ñ
+const CANVAS_WIDTH = 800; // 20 §ä§Ñ§Û§Ý§à§Ó
+const CANVAS_HEIGHT = 480; // 12 §ä§Ñ§Û§Ý§à§Ó
+
+// §²§Ñ§Ù§Þ§Ö§â §Ó§ã§Ö§Û §Ü§Ñ§â§ä§í §Ó §á§Ú§Ü§ã§Ö§Ý§ñ§ç (§ß§å§Ø§Ö§ß §Õ§Ý§ñ §Ô§â§Ñ§ß§Ú§è)
+const MAP_WIDTH = 16 * TILE_SIZE; 
+const MAP_HEIGHT = 12 * TILE_SIZE; 
 
 let gold = 1000; 
 let riftHealth = 20;
@@ -19,6 +24,10 @@ let orcs = [];
 let traps = [];
 let trapMode = null; 
 let keys = {}; 
+
+// §¯§à§Ó§Ñ§ñ §á§Ö§â§Ö§Þ§Ö§ß§ß§Ñ§ñ §Õ§Ý§ñ §ã§Õ§Ó§Ú§Ô§Ñ §Ü§Ñ§Þ§Ö§â§í
+let cameraOffset = { x: 0, y: 0 };
+
 
 // ====================================================================
 // §¥§¡§¯§¯§½§¦ §ª§¤§²§½: §¬§¡§²§´§¡ §ª §±§µ§´§¾
@@ -134,8 +143,9 @@ function updateInfo() {
 }
 
 // §±§â§à§Ó§Ö§â§ñ§Ö§ä, §ñ§Ó§Ý§ñ§Ö§ä§ã§ñ §Ý§Ú §Ù§Ñ§Õ§Ñ§ß§ß§Ñ§ñ §Ü§à§à§â§Õ§Ú§ß§Ñ§ä§Ñ (x, y) §ä§Ñ§Û§Ý§à§Þ §ã§ä§Ö§ß§í (1)
+// §£§¡§¨§¯§°: §¿§ä§Ñ §æ§å§ß§Ü§è§Ú§ñ §Ú§ã§á§à§Ý§î§Ù§å§Ö§ä §Ñ§Ò§ã§à§Ý§ð§ä§ß§í§Ö §Ü§à§à§â§Õ§Ú§ß§Ñ§ä§í §Ü§Ñ§â§ä§í, §Ñ §ß§Ö Canvas!
 const isWall = (x, y) => {
-    if (x < 0 || x >= CANVAS_WIDTH || y < 0 || y >= CANVAS_HEIGHT) return true;
+    if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) return true;
     
     const tileX = Math.floor(x / TILE_SIZE);
     const tileY = Math.floor(y / TILE_SIZE);
@@ -143,7 +153,7 @@ const isWall = (x, y) => {
 };
 
 // ====================================================================
-// §­§°§¤§ª§¬§¡ §¥§£§ª§¨§¦§¯§ª§Á §³§´§²§¡§¨§¡ (§ª§³§±§²§¡§£§­§¦§¯§¯§¡§Á §¬§°§­§­§ª§©§ª§Á)
+// §­§°§¤§ª§¬§¡ §¥§£§ª§¨§¦§¯§ª§Á §³§´§²§¡§¨§¡ §ª §¬§°§­§­§ª§©§ª§«
 // ====================================================================
 
 function handleGuardianMovement() {
@@ -163,7 +173,6 @@ function handleGuardianMovement() {
     // 1. §±§â§à§Ó§Ö§â§ñ§Ö§Þ §Õ§Ó§Ú§Ø§Ö§ß§Ú§Ö §á§à X
     let canMoveX = true;
     if (dx !== 0) {
-        // §±§â§à§Ó§Ö§â§Ü§Ñ §ã §à§ä§ã§ä§å§á§à§Þ §Ó 1 §á§Ú§Ü§ã§Ö§Ý§î
         const checkX = newX + (dx > 0 ? halfSize - 1 : -halfSize + 1); 
         if (isWall(checkX, guardian.y - halfSize + 1) || 
             isWall(checkX, guardian.y + halfSize - 1))   
@@ -175,7 +184,6 @@ function handleGuardianMovement() {
     // 2. §±§â§à§Ó§Ö§â§ñ§Ö§Þ §Õ§Ó§Ú§Ø§Ö§ß§Ú§Ö §á§à Y
     let canMoveY = true;
     if (dy !== 0) {
-        // §±§â§à§Ó§Ö§â§Ü§Ñ §ã §à§ä§ã§ä§å§á§à§Þ §Ó 1 §á§Ú§Ü§ã§Ö§Ý§î
         const checkY = newY + (dy > 0 ? halfSize - 1 : -halfSize + 1); 
         if (isWall(guardian.x - halfSize + 1, checkY) || 
             isWall(guardian.x + halfSize - 1, checkY))   
@@ -192,12 +200,10 @@ function handleGuardianMovement() {
         guardian.y = newY;
     }
 
-    // §°§Ô§â§Ñ§ß§Ú§é§Ú§Ó§Ñ§Ö§Þ §³§ä§â§Ñ§Ø§Ñ §Ô§â§Ñ§ß§Ú§è§Ñ§Þ§Ú Canvas
+    // §°§Ô§â§Ñ§ß§Ú§é§Ú§Ó§Ñ§Ö§Þ §³§ä§â§Ñ§Ø§Ñ §Ô§â§Ñ§ß§Ú§è§Ñ§Þ§Ú §Ó§ã§Ö§Û §¬§Ñ§â§ä§í (MAP_WIDTH/HEIGHT)
     const padding = halfSize;
-    if (canvas) {
-        guardian.x = Math.max(padding, Math.min(canvas.width - padding, guardian.x));
-        guardian.y = Math.max(padding, Math.min(canvas.height - padding, guardian.y));
-    }
+    guardian.x = Math.max(padding, Math.min(MAP_WIDTH - padding, guardian.x));
+    guardian.y = Math.max(padding, Math.min(MAP_HEIGHT - padding, guardian.y));
 
     // 4. §°§Ò§â§Ñ§Ò§à§ä§Ü§Ñ §Ñ§ä§Ñ§Ü§Ú
     if (keys['Space'] && guardian.attackTimer <= 0) {
@@ -220,7 +226,7 @@ function attackOrcs() {
 }
 
 // ====================================================================
-// §­§°§¤§ª§¬§¡ §¥§£§ª§¨§¦§¯§ª§Á §°§²§¬§°§£ (§°§¬§°§¯§¹§¡§´§¦§­§¾§¯§° §ª§³§±§²§¡§£§­§¦§¯§¯§¡§Á §¬§°§­§­§ª§©§ª§Á)
+// §­§°§¤§ª§¬§¡ §¥§£§ª§¨§¦§¯§ª§Á §°§²§¬§°§£ (§³ §ª§³§±§²§¡§£§­§¦§¯§¯§°§« §¬§°§­§­§ª§©§ª§¦§«)
 // ====================================================================
 
 function handleOrcMovement() {
@@ -295,9 +301,6 @@ function handleOrcMovement() {
 }
 
 function handleTraps() {
-    // 1. §­§à§Ô§Ú§Ü§Ñ §Ý§à§Ó§å§ê§Ö§Ü §Ú §ß§Ñ§ß§Ö§ã§Ö§ß§Ú§Ö §å§â§à§ß§Ñ §à§â§Ü§Ñ§Þ
-    // ... (§£§Ñ§ê §Ü§à§Õ §Ý§à§Ô§Ú§Ü§Ú §Ý§à§Ó§å§ê§Ö§Ü) ...
-
     // 2. §µ§Õ§Ñ§Ý§Ö§ß§Ú§Ö §Þ§Ö§â§ä§Ó§í§ç §à§â§Ü§à§Ó §Ú §ß§Ñ§é§Ú§ã§Ý§Ö§ß§Ú§Ö §Ù§à§Ý§à§ä§Ñ
     orcs = orcs.filter(orc => {
         if (orc.health <= 0) {
@@ -318,17 +321,32 @@ function handleTraps() {
 }
 
 // ====================================================================
-// §µ§±§²§¡§£§­§¦§¯§ª§¦ §ª§¤§²§°§£§½§® §±§²§°§¸§¦§³§³§°§®
+// §µ§±§²§¡§£§­§¦§¯§ª§¦ §ª§¤§²§°§£§½§® §±§²§°§¸§¦§³§³§°§® §ª §¬§¡§®§¦§²§¡
 // ====================================================================
+
+// §¯§à§Ó§Ñ§ñ §æ§å§ß§Ü§è§Ú§ñ §Õ§Ý§ñ §â§Ñ§ã§é§Ö§ä§Ñ §ã§Õ§Ó§Ú§Ô§Ñ §Ü§Ñ§Þ§Ö§â§í
+function calculateCameraOffset() {
+    // §³§ä§â§Ñ§Ø §Õ§à§Ý§Ø§Ö§ß §Ò§í§ä§î §Ó §è§Ö§ß§ä§â§Ö §ï§Ü§â§Ñ§ß§Ñ (CANVAS_WIDTH/2)
+    const targetX = guardian.x - CANVAS_WIDTH / 2;
+    const targetY = guardian.y - CANVAS_HEIGHT / 2;
+    
+    // §°§Ô§â§Ñ§ß§Ú§é§Ú§Ó§Ñ§Ö§Þ §ã§Õ§Ó§Ú§Ô §Ô§â§Ñ§ß§Ú§è§Ñ§Þ§Ú §Ü§Ñ§â§ä§í, §é§ä§à§Ò§í §ß§Ö §á§à§Ü§Ñ§Ù§í§Ó§Ñ§ä§î §á§å§ã§ä§à§ä§å
+    cameraOffset.x = Math.max(0, Math.min(targetX, MAP_WIDTH - CANVAS_WIDTH));
+    cameraOffset.y = Math.max(0, Math.min(targetY, MAP_HEIGHT - CANVAS_HEIGHT));
+}
 
 function setTrapMode(type) {
     trapMode = type;
     showMessage(`§²§Ö§Ø§Ú§Þ: §µ§ã§ä§Ñ§ß§à§Ó§Ü§Ñ §Ý§à§Ó§å§ê§Ü§Ú "${TRAPS_DATA[type].name}". §¯§Ñ§Ø§Þ§Ú§ä§Ö §ß§Ñ §á§å§ã§ä§à§Û §ä§Ñ§Û§Ý.`);
 }
 
-function placeTrap(x, y) {
+function placeTrap(absX, absY) {
     const trapData = TRAPS_DATA[trapMode];
     if (!trapData) return;
+    
+    // §±§Ö§â§Ö§ã§é§Ö§ä §Ñ§Ò§ã§à§Ý§ð§ä§ß§í§ç §Ü§à§à§â§Õ§Ú§ß§Ñ§ä §Ó §ä§Ñ§Û§Ý§í
+    const x = Math.floor(absX / TILE_SIZE);
+    const y = Math.floor(absY / TILE_SIZE);
 
     const tileCenter = {
         x: x * TILE_SIZE + TILE_SIZE / 2, 
@@ -345,7 +363,7 @@ function placeTrap(x, y) {
         if (gold >= trapData.cost) {
             gold -= trapData.cost;
             traps.push({
-                x: tileCenter.x, 
+                x: tileCenter.x, // §ª§ã§á§à§Ý§î§Ù§å§Ö§Þ §Ñ§Ò§ã§à§Ý§ð§ä§ß§í§Ö §Ü§à§à§â§Õ§Ú§ß§Ñ§ä§í §Ü§Ñ§â§ä§í
                 y: tileCenter.y, 
                 type: trapMode,
                 damage: trapData.damage || 0, 
@@ -370,10 +388,15 @@ function handleCanvasClick(event) {
     if (!trapMode || !canvas) return;
     const rect = canvas.getBoundingClientRect();
     
-    const x = (event.clientX - rect.left) / (rect.width / canvas.width);
-    const y = (event.clientY - rect.top) / (rect.height / canvas.height);
+    // §¬§à§à§â§Õ§Ú§ß§Ñ§ä§í §Ü§Ý§Ú§Ü§Ñ §à§ä§ß§à§ã§Ú§ä§Ö§Ý§î§ß§à Canvas
+    const clickX = (event.clientX - rect.left) / (rect.width / canvas.width);
+    const clickY = (event.clientY - rect.top) / (rect.height / canvas.height);
+
+    // §±§Ö§â§Ö§Ó§à§Õ§Ú§Þ §Ü§à§à§â§Õ§Ú§ß§Ñ§ä§í Canvas §Ó §Ñ§Ò§ã§à§Ý§ð§ä§ß§í§Ö §Ü§à§à§â§Õ§Ú§ß§Ñ§ä§í §¬§Ñ§â§ä§í (§å§é§Ú§ä§í§Ó§Ñ§Ö§Þ §ã§Õ§Ó§Ú§Ô §Ü§Ñ§Þ§Ö§â§í!)
+    const absMapX = clickX + cameraOffset.x;
+    const absMapY = clickY + cameraOffset.y;
     
-    placeTrap(Math.floor(x / TILE_SIZE), Math.floor(y / TILE_SIZE));
+    placeTrap(absMapX, absMapY);
 }
 
 function setupEventHandlers() {
@@ -435,18 +458,20 @@ function startNextWave() {
 
 
 // ====================================================================
-// §°§´§°§¢§²§¡§¨§¦§¯§ª§¦ (DRAW)
+// §°§´§°§¢§²§¡§¨§¦§¯§ª§¦ (DRAW) - §£§ã§Ö §æ§å§ß§Ü§è§Ú§Ú §Ú§ã§á§à§Ý§î§Ù§å§ð§ä §ã§Õ§Ó§Ú§Ô §Ü§Ñ§Þ§Ö§â§í!
 // ====================================================================
 
 function drawMap() {
     if (!ctx) return;
-    // §°§é§Ú§ë§Ñ§Ö§Þ Canvas §ß§Ñ §Ü§Ñ§Ø§Õ§à§Þ §Ü§Ñ§Õ§â§Ö
+    
+    // §°§é§Ú§ë§Ñ§Ö§Þ Canvas
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); 
 
     mapGrid.forEach((row, y) => {
         row.forEach((cell, x) => {
-            const tileX = x * TILE_SIZE;
-            const tileY = y * TILE_SIZE;
+            // §±§â§Ú§Þ§Ö§ß§ñ§Ö§Þ §ã§Õ§Ó§Ú§Ô §Ü§Ñ§Þ§Ö§â§í §Ü §Ü§à§à§â§Õ§Ú§ß§Ñ§ä§Ñ§Þ §à§ä§â§Ú§ã§à§Ó§Ü§Ú
+            const tileX = x * TILE_SIZE - cameraOffset.x;
+            const tileY = y * TILE_SIZE - cameraOffset.y;
 
             ctx.fillStyle = '#b0b0b0'; 
             ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
@@ -481,57 +506,69 @@ function drawMap() {
     });
 
     traps.forEach(trap => {
+        // §±§â§Ú§Þ§Ö§ß§ñ§Ö§Þ §ã§Õ§Ó§Ú§Ô §Ü§Ñ§Þ§Ö§â§í
+        const drawX = trap.x - cameraOffset.x;
+        const drawY = trap.y - cameraOffset.y;
+
         ctx.fillStyle = trap.color;
         ctx.globalAlpha = 0.9;
         ctx.beginPath();
-        ctx.rect(trap.x - TILE_SIZE/2 + 4, trap.y - TILE_SIZE/2 + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+        ctx.rect(drawX - TILE_SIZE/2 + 4, drawY - TILE_SIZE/2 + 4, TILE_SIZE - 8, TILE_SIZE - 8);
         ctx.fill();
         ctx.globalAlpha = 1.0;
         
         ctx.fillStyle = 'white';
         ctx.font = '16px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(TRAPS_DATA[trap.type].icon, trap.x, trap.y);
+        ctx.fillText(TRAPS_DATA[trap.type].icon, drawX, drawY);
     });
 }
 
 function drawOrcs() {
     if (!ctx) return;
     orcs.forEach(orc => {
+        // §±§â§Ú§Þ§Ö§ß§ñ§Ö§Þ §ã§Õ§Ó§Ú§Ô §Ü§Ñ§Þ§Ö§â§í
+        const drawX = orc.x - cameraOffset.x;
+        const drawY = orc.y - cameraOffset.y;
+
         ctx.fillStyle = '#3CB371'; 
         ctx.beginPath();
-        ctx.arc(orc.x, orc.y, orc.size / 2, 0, Math.PI * 2); 
+        ctx.arc(drawX, drawY, orc.size / 2, 0, Math.PI * 2); 
         ctx.fill();
         
         // §±§à§Ý§à§ã§Ü§Ñ §Ù§Õ§à§â§à§Ó§î§ñ
         const barWidth = orc.size * 2;
         const barHeight = 3;
-        const barY = orc.y - orc.size * 2;
+        const barY = drawY - orc.size * 2;
         
         ctx.fillStyle = 'red';
-        ctx.fillRect(orc.x - orc.size, barY, barWidth, barHeight);
+        ctx.fillRect(drawX - orc.size, barY, barWidth, barHeight);
         ctx.fillStyle = 'lime';
-        ctx.fillRect(orc.x - orc.size, barY, barWidth * (orc.health / orc.maxHealth), barHeight);
+        ctx.fillRect(drawX - orc.size, barY, barWidth * (orc.health / orc.maxHealth), barHeight);
     });
 }
 
 function drawGuardian() {
     if (!ctx) return;
     
+    // §±§â§Ú§Þ§Ö§ß§ñ§Ö§Þ §ã§Õ§Ó§Ú§Ô §Ü§Ñ§Þ§Ö§â§í
+    const drawX = guardian.x - cameraOffset.x;
+    const drawY = guardian.y - cameraOffset.y;
+
     // §¿§æ§æ§Ö§Ü§ä §Ñ§ä§Ñ§Ü§Ú
     if (guardian.isAttacking) {
         ctx.strokeStyle = '#FFD700'; 
         ctx.lineWidth = 5;
         ctx.globalAlpha = 0.5;
         ctx.beginPath();
-        ctx.arc(guardian.x, guardian.y, guardian.attackRange, 0, Math.PI * 2);
+        ctx.arc(drawX, drawY, guardian.attackRange, 0, Math.PI * 2);
         ctx.stroke();
         ctx.globalAlpha = 1;
     }
 
     ctx.fillStyle = '#4169E1'; 
     ctx.beginPath();
-    ctx.arc(guardian.x, guardian.y, guardian.size / 2, 0, Math.PI * 2); 
+    ctx.arc(drawX, drawY, guardian.size / 2, 0, Math.PI * 2); 
     ctx.fill();
 }
 
@@ -547,6 +584,8 @@ function update() {
     }
     
     handleGuardianMovement(); 
+    // §°§Ò§ß§à§Ó§Ý§ñ§Ö§Þ §á§à§Ù§Ú§è§Ú§ð §Ü§Ñ§Þ§Ö§â§í §á§à§ã§Ý§Ö §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ §³§ä§â§Ñ§Ø§Ñ
+    calculateCameraOffset();
 
     if (!gameRunning) return;
     
@@ -555,7 +594,6 @@ function update() {
 }
 
 function gameLoop() {
-    // §£§¡§¨§¯§°: §±§â§à§Ó§Ö§â§Ü§Ñ ctx §ß§Ö§à§Ò§ç§à§Õ§Ú§Þ§Ñ, §é§ä§à§Ò§í §Ú§Ù§Ò§Ö§Ø§Ñ§ä§î §à§ê§Ú§Ò§Ü§Ú, §Ö§ã§Ý§Ú §Ü§à§ß§ä§Ö§Ü§ã§ä §ß§Ö §Ò§í§Ý §á§à§Ý§å§é§Ö§ß
     if (!ctx) {
         requestAnimationFrame(gameLoop);
         return;
@@ -569,30 +607,29 @@ function gameLoop() {
 }
 
 function initGame() {
-    // 1. §±§à§Ú§ã§Ü Canvas
     canvas = document.getElementById('gameCanvas'); 
     if (!canvas) {
         console.error("Canvas §ã id 'gameCanvas' §ß§Ö §ß§Ñ§Û§Õ§Ö§ß. §µ§Ò§Ö§Õ§Ú§ä§Ö§ã§î, §é§ä§à §à§ß §Ö§ã§ä§î §Ó HTML.");
         return;
     }
     
-    // 2. §µ§ã§ä§Ñ§ß§à§Ó§Ü§Ñ §â§Ñ§Ù§Þ§Ö§â§à§Ó Canvas
     canvas.width = CANVAS_WIDTH;
     canvas.height = CANVAS_HEIGHT;
 
-    // 3. §±§à§Ý§å§é§Ö§ß§Ú§Ö §Ü§à§ß§ä§Ö§Ü§ã§ä§Ñ (§Ü§â§Ú§ä§Ú§é§Ö§ã§Ü§Ú§Û §ê§Ñ§Ô)
     ctx = canvas.getContext('2d');
     if (!ctx) {
         console.error("§¯§Ö §å§Õ§Ñ§Ý§à§ã§î §á§à§Ý§å§é§Ú§ä§î 2D-§Ü§à§ß§ä§Ö§Ü§ã§ä §â§Ö§ß§Õ§Ö§â§Ú§ß§Ô§Ñ. §£§Ñ§ê §Ò§â§Ñ§å§Ù§Ö§â §á§à§Õ§Õ§Ö§â§Ø§Ú§Ó§Ñ§Ö§ä Canvas?");
         return;
     }
+    
+    // §ª§ß§Ú§è§Ú§Ñ§Ý§Ú§Ù§Ú§â§å§Ö§Þ §Ü§Ñ§Þ§Ö§â§å, §é§ä§à§Ò§í §³§ä§â§Ñ§Ø §ã§â§Ñ§Ù§å §Ò§í§Ý §Ó §Ü§Ñ§Õ§â§Ö
+    calculateCameraOffset(); 
 
     updateInfo();
     setupTouchControls(); 
     setupEventHandlers(); 
     showMessage('§µ§á§â§Ñ§Ó§Ý§ñ§Û§ä§Ö §³§ä§â§Ñ§Ø§Ö§Þ (WASD/§³§Ö§ß§ã§à§â), §é§ä§à§Ò§í §Ù§Ñ§ë§Ú§ä§Ú§ä§î §²§Ú§æ§ä! §¯§Ñ§é§ß§Ú§ä§Ö §Ó§à§Ý§ß§å.');
     
-    // 4. §©§Ñ§á§å§ã§Ü §è§Ú§Ü§Ý§Ñ
     gameLoop();
 }
 
