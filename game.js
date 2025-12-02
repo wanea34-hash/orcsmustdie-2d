@@ -40,7 +40,7 @@ const mapGrid = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] 
 ];
 
-// §±§å§ä§î, §Ü§à§ä§à§â§í§Û §°§â§Ü§Ú §Õ§à§Ý§Ø§ß§í §á§â§à§Û§ä§Ú
+// §±§å§ä§î, §Ü§à§ä§à§â§í§Û §°§â§Ü§Ú §Õ§à§Ý§Ø§ß§í §á§â§à§Û§ä§Ú (§¬§à§à§â§Õ§Ú§ß§Ñ§ä§í §ä§Ñ§Û§Ý§à§Ó)
 const path = [
     {x: 1, y: 1}, {x: 6, y: 1}, {x: 6, y: 3}, {x: 3, y: 3}, {x: 3, y: 4}, 
     {x: 6, y: 4}, {x: 6, y: 5}, {x: 8, y: 5}, {x: 8, y: 7}, {x: 12, y: 7}, 
@@ -49,8 +49,8 @@ const path = [
 
 const guardian = {
     x: 1 * TILE_SIZE + TILE_SIZE / 2, 
-    y: 1 * TILE_SIZE + TILE_SIZE / 2, // §³§ä§Ñ§â§ä§å§Ö§Þ §³§ä§â§Ñ§Ø§Ñ §Ó §ß§Ñ§é§Ñ§Ý§Ö §á§å§ä§Ú
-    size: 20, // §¥§Ú§Ñ§Þ§Ö§ä§â
+    y: 1 * TILE_SIZE + TILE_SIZE / 2,
+    size: 20, 
     speed: 2,
     attackRange: 50,
     attackDamage: 8,
@@ -60,9 +60,9 @@ const guardian = {
 };
 
 const TRAPS_DATA = {
-    'ARROW': {cost: 50, damage: 5, color: '#d9534f', uses: 1, name: '§³§ä§â§Ö§Ý§í'},
-    'TAR': {cost: 25, damage: 0, color: '#654321', slow: 0.5, uses: Infinity, name: '§³§Þ§à§Ý§Ñ'},
-    'SPRING': {cost: 75, damage: 0, color: '#337ab7', push: 100, uses: 1, name: '§¢§Ñ§ä§å§ä'}
+    'ARROW': {cost: 50, damage: 5, color: '#d9534f', uses: 1, name: '§³§ä§â§Ö§Ý§í', icon: 'A'},
+    'TAR': {cost: 25, damage: 0, color: '#654321', slow: 0.5, uses: Infinity, name: '§³§Þ§à§Ý§Ñ', icon: 'T'},
+    'SPRING': {cost: 75, damage: 0, color: '#337ab7', push: 100, uses: 1, name: '§¢§Ñ§ä§å§ä', icon: 'S'}
 };
 
 const rift = {
@@ -71,27 +71,49 @@ const rift = {
     size: TILE_SIZE / 2
 };
 
-
 // ====================================================================
-// §µ§±§²§¡§£§­§¦§¯§ª§¦ §ª §°§¢§»§ª§¦ §¶§µ§¯§¬§¸§ª§ª
+// §µ§±§²§¡§£§­§¦§¯§ª§¦ (§¬§­§¡§£§ª§¡§´§µ§²§¡ §ª §³§¦§¯§³§°§²)
 // ====================================================================
 
-function showMessage(text) {
-    const messageElement = document.getElementById('message');
-    if (messageElement) {
-        messageElement.textContent = text;
-    }
-}
+const touchControlsMap = {
+    'up': 'KeyW', 'down': 'KeyS', 'left': 'KeyA', 'right': 'KeyD', 'attack-btn': 'Space'
+};
 
-function updateInfo() {
-    const goldElement = document.getElementById('gold');
-    const riftElement = document.getElementById('rift-health');
-    const waveElement = document.getElementById('current-wave');
+function setupTouchControls() {
+    const buttons = document.querySelectorAll('.touch-btn, #attack-btn');
     
-    if (goldElement) goldElement.textContent = gold;
-    if (riftElement) riftElement.textContent = riftHealth;
-    if (waveElement) waveElement.textContent = currentWave;
+    buttons.forEach(button => {
+        const code = touchControlsMap[button.id];
+        // §ª§ã§á§à§Ý§î§Ù§å§Ö§Þ 'touchstart' §Ú 'touchend' §Õ§Ý§ñ §Þ§à§Ò§Ú§Ý§î§ß§í§ç
+        button.addEventListener('touchstart', (e) => { e.preventDefault(); if (code) { keys[code] = true; } });
+        button.addEventListener('touchend', (e) => { e.preventDefault(); if (code) { keys[code] = false; } });
+    });
+    
+    // §°§Ò§â§Ñ§Ò§à§ä§Ü§Ñ §Õ§Ú§Ñ§Ô§à§ß§Ñ§Ý§î§ß§í§ç §Ü§ß§à§á§à§Ü (up-left, down-right §Ú §ä.§Õ.)
+    const handleDiagonal = (e, isStart) => {
+        e.preventDefault();
+        const id = e.currentTarget.id;
+        if (id.includes('up')) keys['KeyW'] = isStart;
+        if (id.includes('down')) keys['KeyS'] = isStart;
+        if (id.includes('left')) keys['KeyA'] = isStart;
+        if (id.includes('right')) keys['KeyD'] = isStart;
+    };
+    
+    // §±§â§Ú§Ó§ñ§Ù§í§Ó§Ñ§Ö§Þ §à§Ò§â§Ñ§Ò§à§ä§é§Ú§Ü §Ü§à §Ó§ã§Ö§Þ §Õ§Ú§Ñ§Ô§à§ß§Ñ§Ý§î§ß§í§Þ §Ü§ß§à§á§Ü§Ñ§Þ
+    ['up-left', 'up-right', 'down-left', 'down-right'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.addEventListener('touchstart', (e) => handleDiagonal(e, true));
+            btn.addEventListener('touchend', (e) => handleDiagonal(e, false));
+        }
+    });
 }
+
+window.addEventListener('keydown', (e) => { keys[e.code] = true; });
+window.addEventListener('keyup', (e) => { 
+    keys[e.code] = false; 
+    if (e.code === 'Space') { guardian.isAttacking = false; }
+});
 
 // §±§â§à§Ó§Ö§â§ñ§Ö§ä, §ñ§Ó§Ý§ñ§Ö§ä§ã§ñ §Ý§Ú §Ù§Ñ§Õ§Ñ§ß§ß§Ñ§ñ §Ü§à§à§â§Õ§Ú§ß§Ñ§ä§Ñ (x, y) §ä§Ñ§Û§Ý§à§Þ §ã§ä§Ö§ß§í (1)
 const isWall = (x, y) => {
@@ -103,14 +125,6 @@ const isWall = (x, y) => {
     // §±§â§à§Ó§Ö§â§ñ§Ö§Þ, §ã§å§ë§Ö§ã§ä§Ó§å§Ö§ä §Ý§Ú §ä§Ñ§Û§Ý §Ú §ñ§Ó§Ý§ñ§Ö§ä§ã§ñ §Ý§Ú §à§ß §ã§ä§Ö§ß§à§Û
     return mapGrid[tileY] && mapGrid[tileY][tileX] === 1;
 };
-
-// ... (§°§ã§ä§Ñ§Ý§î§ß§Ñ§ñ §Ý§à§Ô§Ú§Ü§Ñ §Õ§Ý§ñ §ã§Ö§ß§ã§à§â§ß§í§ç §ï§Ý§Ö§Þ§Ö§ß§ä§à§Ó §å§á§â§Ñ§Ó§Ý§Ö§ß§Ú§ñ) ...
-
-window.addEventListener('keydown', (e) => { keys[e.code] = true; });
-window.addEventListener('keyup', (e) => { 
-    keys[e.code] = false; 
-    if (e.code === 'Space') { guardian.isAttacking = false; }
-});
 
 // ====================================================================
 // §­§°§¤§ª§¬§¡ §¥§£§ª§¨§¦§¯§ª§Á §³§´§²§¡§¨§¡ (§ª§³§±§²§¡§£§­§¦§¯§¯§¡§Á §¬§°§­§­§ª§©§ª§Á)
@@ -183,7 +197,6 @@ function attackOrcs() {
 
         if (distance < guardian.attackRange) {
             orc.health -= guardian.attackDamage;
-            // (§©§Õ§Ö§ã§î §Õ§à§Ý§Ø§ß§Ñ §Ò§í§ä§î §Ý§à§Ô§Ú§Ü§Ñ §á§â§à§ä§Ñ§Ý§Ü§Ú§Ó§Ñ§ß§Ú§ñ §à§â§Ü§Ñ, §Ö§ã§Ý§Ú §à§ß§Ñ §ß§å§Ø§ß§Ñ)
         }
     });
 }
@@ -198,7 +211,7 @@ function handleOrcMovement() {
         // if (orc.isPushed) { ... return; }
 
         if (orc.pathIndex >= path.length) {
-            orc.health = -1; 
+            orc.health = -1; // §²§Ú§æ§ä §Õ§à§ã§ä§Ú§Ô§ß§å§ä
             riftHealth -= 1;
             return;
         }
@@ -226,7 +239,7 @@ function handleOrcMovement() {
             let canMoveX = true;
             let canMoveY = true;
             
-            // §±§â§à§Ó§Ö§â§Ü§Ñ §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ §á§à X (§Ñ§ß§Ñ§Ý§à§Ô§Ú§é§ß§à §³§ä§â§Ñ§Ø§å)
+            // §±§â§à§Ó§Ö§â§Ü§Ñ §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ §á§à X
             if (moveX !== 0) {
                 const checkX = newX + (moveX > 0 ? halfSize - 1 : -halfSize + 1); 
                 if (isWall(checkX, orc.y - halfSize + 1) || 
@@ -236,9 +249,9 @@ function handleOrcMovement() {
                 }
             }
 
-            // §±§â§à§Ó§Ö§â§Ü§Ñ §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ §á§à Y (§Ñ§ß§Ñ§Ý§à§Ô§Ú§é§ß§à §³§ä§â§Ñ§Ø§å)
+            // §±§â§à§Ó§Ö§â§Ü§Ñ §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ §á§à Y
             if (moveY !== 0) {
-                const checkY = newY + (moveY > 0 ? halfSize - 1 : -halfSize + 1); 
+                const checkY = newY + (dy > 0 ? halfSize - 1 : -halfSize + 1); 
                 if (isWall(orc.x - halfSize + 1, checkY) || 
                     isWall(orc.x + halfSize - 1, checkY))   
                 {
@@ -286,7 +299,81 @@ function handleTraps() {
     }
 }
 
-// ... (§¶§å§ß§Ü§è§Ú§Ú setTrapMode, handleCanvasClick, placeTrap) ...
+// ====================================================================
+// §µ§±§²§¡§£§­§¦§¯§ª§¦ §ª§¤§²§°§£§½§® §±§²§°§¸§¦§³§³§°§®
+// ====================================================================
+
+function setTrapMode(type) {
+    trapMode = type;
+    showMessage(`§²§Ö§Ø§Ú§Þ: §µ§ã§ä§Ñ§ß§à§Ó§Ü§Ñ §Ý§à§Ó§å§ê§Ü§Ú "${TRAPS_DATA[type].name}". §¯§Ñ§Ø§Þ§Ú§ä§Ö §ß§Ñ §á§å§ã§ä§à§Û §ä§Ñ§Û§Ý.`);
+}
+
+function placeTrap(x, y) {
+    const trapData = TRAPS_DATA[trapMode];
+    if (!trapData) return;
+
+    // §±§â§à§Ó§Ö§â§Ü§Ñ, §é§ä§à §ï§ä§à §á§à§Ý (0) §Ú §Ý§à§Ó§å§ê§Ü§Ñ §ß§Ö §ã§ä§à§Ú§ä
+    if (mapGrid[y] && mapGrid[y][x] === 0 && !traps.find(t => Math.floor(t.x / TILE_SIZE) === x && Math.floor(t.y / TILE_SIZE) === y)) {
+        if (gold >= trapData.cost) {
+            gold -= trapData.cost;
+            traps.push({
+                x: x * TILE_SIZE + TILE_SIZE / 2, 
+                y: y * TILE_SIZE + TILE_SIZE / 2, 
+                type: trapMode,
+                damage: trapData.damage || 0, 
+                slow: trapData.slow || 0, 
+                uses: trapData.uses,
+                color: trapData.color, 
+                push: trapData.push || 0,
+                // §¥§Ý§ñ §Ý§à§Ó§å§ê§Ö§Ü §ã §á§Ö§â§Ö§Ù§Ñ§â§ñ§Õ§Ü§à§Û
+                cooldown: 0
+            });
+            showMessage(`§­§à§Ó§å§ê§Ü§Ñ "${trapData.name}" §å§ã§ä§Ñ§ß§à§Ó§Ý§Ö§ß§Ñ!`);
+            updateInfo();
+        } else {
+            showMessage('§¯§Ö§Õ§à§ã§ä§Ñ§ä§à§é§ß§à §Ù§à§Ý§à§ä§Ñ!');
+        }
+    } else {
+        showMessage('§¯§Ö§Ý§î§Ù§ñ §ã§ä§Ñ§Ó§Ú§ä§î §Ý§à§Ó§å§ê§Ü§å §ß§Ñ §ã§ä§Ö§ß§í §Ú§Ý§Ú §å§Ø§Ö §Ù§Ñ§ß§ñ§ä§í§Û §ä§Ñ§Û§Ý!');
+    }
+    trapMode = null; 
+}
+
+function handleCanvasClick(event) {
+    if (!trapMode || !canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    
+    // §¬§à§â§â§Ö§Ü§ä§ß§í§Û §á§Ö§â§Ö§ã§é§Ö§ä §Ü§à§à§â§Õ§Ú§ß§Ñ§ä
+    const x = (event.clientX - rect.left) / (rect.width / canvas.width);
+    const y = (event.clientY - rect.top) / (rect.height / canvas.height);
+    
+    placeTrap(Math.floor(x / TILE_SIZE), Math.floor(y / TILE_SIZE));
+}
+
+function setupEventHandlers() {
+    if (!canvas) return;
+    canvas.addEventListener('click', handleCanvasClick);
+    // §°§Ò§â§Ñ§Ò§à§ä§Ü§Ñ §ã§Ö§ß§ã§à§â§ß§à§Ô§à §ß§Ñ§Ø§Ñ§ä§Ú§ñ §Õ§Ý§ñ §å§ã§ä§Ñ§ß§à§Ó§Ü§Ú §Ý§à§Ó§å§ê§Ö§Ü
+    canvas.addEventListener('touchstart', (e) => {
+        // §±§â§à§Ó§Ö§â§ñ§Ö§Þ, §é§ä§à §ß§Ñ§Ø§Ñ§ä§Ú§Ö §ß§Ö §Ú§ã§ç§à§Õ§Ú§ä §à§ä §Ü§ß§à§á§à§Ü §å§á§â§Ñ§Ó§Ý§Ö§ß§Ú§ñ
+        if (e.target === canvas) {
+            e.preventDefault(); 
+            handleCanvasClick(e.touches[0]);
+        }
+    }, { passive: false });
+    
+    // §±§â§Ú§Ó§ñ§Ù§Ü§Ñ §Ü§ß§à§á§à§Ü §å§á§â§Ñ§Ó§Ý§Ö§ß§Ú§ñ §Ý§à§Ó§å§ê§Ü§Ñ§Þ§Ú §Ó HTML
+    document.querySelector('.controls-panel').addEventListener('click', (e) => {
+        if (e.target.classList.contains('trap-btn')) {
+            const trapType = e.target.textContent.split(' ')[0].substring(1); // §±§à§Ý§å§é§Ñ§Ö§Þ 'ARROW', 'TAR', 'SPRING'
+            setTrapMode(trapType);
+        }
+    });
+
+    if(document.querySelector('.wave-btn')) {
+        document.querySelector('.wave-btn').addEventListener('click', startNextWave);
+    }
+}
 
 function startNextWave() {
     if (gameRunning) {
@@ -310,7 +397,7 @@ function startNextWave() {
                 maxHealth: orcHealth, 
                 baseSpeed: 1, 
                 slowEffect: 0, 
-                pathIndex: 1, // §¯§Ñ§é§Ú§ß§Ñ§Ö§Þ §Õ§Ó§Ú§Ø§Ö§ß§Ú§Ö §ã§à §Ó§ä§à§â§à§Ô§à §ä§Ñ§Û§Ý§Ñ (§á§Ö§â§Ó§í§Û - §ã§á§Ñ§å§ß)
+                pathIndex: 1, 
                 size: 15,
                 reward: 10
             });
@@ -318,6 +405,7 @@ function startNextWave() {
     }
     updateInfo();
 }
+
 
 // ====================================================================
 // §°§´§°§¢§²§¡§¨§¦§¯§ª§¦ (DRAW)
@@ -342,14 +430,22 @@ function drawMap() {
                 ctx.lineWidth = 1;
                 ctx.strokeRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
             }
-            // §£§ç§à§Õ/§²§Ú§æ§ä (§Þ§à§Ø§ß§à §Õ§à§Ò§Ñ§Ó§Ú§ä§î §ã§á§Ö§è§Ú§Ñ§Ý§î§ß§í§Ö §è§Ó§Ö§ä§Ñ, §Ü§Ñ§Ü §â§Ñ§ß§î§ê§Ö)
+            // §£§ç§à§Õ/§²§Ú§æ§ä
             if (x === path[0].x && y === path[0].y) { // §£§ç§à§Õ
                 ctx.fillStyle = '#004B82'; 
                 ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
+                ctx.fillStyle = 'white';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('SPAWN', tileX + TILE_SIZE / 2, tileY + TILE_SIZE / 2);
             }
-            if (x === rift.x / TILE_SIZE - 0.5 && y === rift.y / TILE_SIZE - 0.5) { // §²§Ú§æ§ä
+             if (x === rift.x / TILE_SIZE - 0.5 && y === rift.y / TILE_SIZE - 0.5) { // §²§Ú§æ§ä
                 ctx.fillStyle = '#8B0000'; 
                 ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
+                ctx.fillStyle = 'white';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('RIFT', tileX + TILE_SIZE / 2, tileY + TILE_SIZE / 2);
             }
         });
     });
@@ -361,7 +457,11 @@ function drawMap() {
         ctx.rect(trap.x - TILE_SIZE/2 + 4, trap.y - TILE_SIZE/2 + 4, TILE_SIZE - 8, TILE_SIZE - 8);
         ctx.fill();
         ctx.globalAlpha = 1.0;
-        // ... (§°§ä§â§Ú§ã§à§Ó§Ü§Ñ §ã§Ú§Þ§Ó§à§Ý§à§Ó §Ý§à§Ó§å§ê§Ö§Ü)
+        // §°§ä§â§Ú§ã§à§Ó§Ü§Ñ §ã§Ú§Þ§Ó§à§Ý§à§Ó §Ý§à§Ó§å§ê§Ö§Ü (§å§á§â§à§ë§Ö§ß§à)
+        ctx.fillStyle = 'white';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(TRAPS_DATA[trap.type].icon, trap.x, trap.y);
     });
 }
 
@@ -444,8 +544,8 @@ function initGame() {
     canvas.height = CANVAS_HEIGHT;
 
     updateInfo();
-    // setupTouchControls(); // §¦§ã§Ý§Ú §à§ß§Ú §Ö§ã§ä§î §Ó HTML
-    // setupEventHandlers(); // §¦§ã§Ý§Ú §Ö§ã§ä§î §à§Ò§â§Ñ§Ò§à§ä§é§Ú§Ü§Ú §Õ§Ý§ñ §Ü§ß§à§á§à§Ü/§Ü§Ý§Ú§Ü§Ñ
+    setupTouchControls(); 
+    setupEventHandlers(); 
     showMessage('§µ§á§â§Ñ§Ó§Ý§ñ§Û§ä§Ö §³§ä§â§Ñ§Ø§Ö§Þ (WASD/§³§Ö§ß§ã§à§â), §é§ä§à§Ò§í §Ù§Ñ§ë§Ú§ä§Ú§ä§î §²§Ú§æ§ä! §¯§Ñ§é§ß§Ú§ä§Ö §Ó§à§Ý§ß§å.');
     
     gameLoop();
