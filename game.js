@@ -5,16 +5,17 @@
 let canvas;
 let ctx;
 
-const TILE_WIDTH = 16; 
-const TILE_HEIGHT = 12;
+// §µ§Ó§Ö§Ý§Ú§é§Ö§ß§ß§í§Ö §Ý§à§Ô§Ú§é§Ö§ã§Ü§Ú§Ö §â§Ñ§Ù§Þ§Ö§â§í §Ü§Ñ§â§ä§í §Õ§Ý§ñ §Õ§Ö§Þ§à§ß§ã§ä§â§Ñ§è§Ú§Ú §â§Ñ§Ò§à§ä§í §Ü§Ñ§Þ§Ö§â§í:
+const TILE_WIDTH = 24; 
+const TILE_HEIGHT = 18;
 const TILE_SIZE = 40; 
-// §­§à§Ô§Ú§é§Ö§ã§Ü§Ú§Ö §â§Ñ§Ù§Þ§Ö§â§í Canvas (§Õ§Ý§ñ §â§Ö§ß§Õ§Ö§â§Ú§ß§Ô§Ñ 640x480)
-const LOGICAL_CANVAS_WIDTH = TILE_WIDTH * TILE_SIZE; 
-const LOGICAL_CANVAS_HEIGHT = TILE_HEIGHT * TILE_SIZE; 
+// §­§à§Ô§Ú§é§Ö§ã§Ü§Ú§Ö §â§Ñ§Ù§Þ§Ö§â§í Canvas (§â§Ñ§Ù§Þ§Ö§â §à§Ü§ß§Ñ, §Ó §Ü§à§ä§à§â§à§Þ §Þ§í §ã§Þ§à§ä§â§Ú§Þ)
+const LOGICAL_CANVAS_WIDTH = 16 * TILE_SIZE; // 640
+const LOGICAL_CANVAS_HEIGHT = 12 * TILE_SIZE; // 480
 
-// §²§Ñ§Ù§Þ§Ö§â §Ó§ã§Ö§Û §Ü§Ñ§â§ä§í §Ó §á§Ú§Ü§ã§Ö§Ý§ñ§ç (§ß§å§Ø§Ö§ß §Õ§Ý§ñ §Ô§â§Ñ§ß§Ú§è)
-const MAP_WIDTH = LOGICAL_CANVAS_WIDTH; 
-const MAP_HEIGHT = LOGICAL_CANVAS_HEIGHT; 
+// §²§Ñ§Ù§Þ§Ö§â §Ó§ã§Ö§Û §Ü§Ñ§â§ä§í §Ó §á§Ú§Ü§ã§Ö§Ý§ñ§ç (960x720)
+const MAP_WIDTH = TILE_WIDTH * TILE_SIZE; 
+const MAP_HEIGHT = TILE_HEIGHT * TILE_SIZE; 
 
 let gold = 1000; 
 let riftHealth = 20;
@@ -25,7 +26,6 @@ let traps = [];
 let trapMode = null; 
 let keys = {}; 
 
-// §±§Ö§â§Ö§Þ§Ö§ß§ß§Ñ§ñ §Õ§Ý§ñ §ã§Õ§Ó§Ú§Ô§Ñ §Ü§Ñ§Þ§Ö§â§í
 let cameraOffset = { x: 0, y: 0 };
 
 
@@ -33,25 +33,34 @@ let cameraOffset = { x: 0, y: 0 };
 // §¥§¡§¯§¯§½§¦ §ª§¤§²§½: §¬§¡§²§´§¡ §ª §±§µ§´§¾
 // ====================================================================
 
+// §²§Ñ§ã§ê§Ú§â§Ö§ß§ß§Ñ§ñ §Ü§Ñ§â§ä§Ñ (24x18)
 const mapGrid = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], // §£§ç§à§Õ (1, 1)
-    [1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1], 
-    [1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1],
-    [1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-    [1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1],
-    [1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
-    [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1], // §²§Ú§æ§ä (14, 10)
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] 
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], // §£§ç§à§Õ (1, 1)
+    [1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], 
+    [1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1],
+    [1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1], // §²§Ú§æ§ä (22, 16)
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1], 
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] 
 ];
 
+// §µ§Õ§Ý§Ú§ß§Ö§ß§ß§í§Û §á§å§ä§î, §Ó§Ö§Õ§å§ë§Ú§Û §Ü (22, 16)
 const path = [
     {x: 1, y: 1}, {x: 6, y: 1}, {x: 6, y: 3}, {x: 3, y: 3}, {x: 3, y: 4}, 
     {x: 6, y: 4}, {x: 6, y: 5}, {x: 8, y: 5}, {x: 8, y: 7}, {x: 12, y: 7}, 
-    {x: 12, y: 9}, {x: 10, y: 9}, {x: 10, y: 10}, {x: 14, y: 10} 
+    {x: 12, y: 9}, {x: 10, y: 9}, {x: 10, y: 10}, {x: 14, y: 10}, 
+    {x: 14, y: 14}, {x: 1, y: 14}, {x: 1, y: 16}, {x: 22, y: 16} 
 ];
 
 const guardian = {
@@ -67,14 +76,14 @@ const guardian = {
 };
 
 const TRAPS_DATA = {
-    'ARROW': {cost: 50, damage: 5, color: '#d9534f', uses: 1, name: '§³§ä§â§Ö§Ý§í', icon: 'A'},
-    'TAR': {cost: 25, damage: 0, color: '#654321', slow: 0.5, uses: Infinity, name: '§³§Þ§à§Ý§Ñ', icon: 'T'},
-    'SPRING': {cost: 75, damage: 0, color: '#337ab7', push: 100, uses: 1, name: '§¢§Ñ§ä§å§ä', icon: 'S'}
+    'A': {cost: 50, damage: 5, color: '#d9534f', uses: 1, name: '§³§ä§â§Ö§Ý§í', icon: 'A'},
+    'T': {cost: 25, damage: 0, color: '#654321', slow: 0.5, uses: Infinity, name: '§³§Þ§à§Ý§Ñ', icon: 'T'},
+    'S': {cost: 75, damage: 0, color: '#337ab7', push: 100, uses: 1, name: '§¢§Ñ§ä§å§ä', icon: 'S'}
 };
 
 const rift = {
-    x: 14 * TILE_SIZE + TILE_SIZE / 2, 
-    y: 10 * TILE_SIZE + TILE_SIZE / 2,
+    x: 22 * TILE_SIZE + TILE_SIZE / 2, 
+    y: 16 * TILE_SIZE + TILE_SIZE / 2,
     size: TILE_SIZE / 2
 };
 
@@ -87,7 +96,6 @@ const touchControlsMap = {
 };
 
 function setupTouchControls() {
-    // §£§Ü§Ý§ð§é§Ñ§Ö§Þ §á§à§Õ§Õ§Ö§â§Ø§Ü§å §Ó§ã§Ö§ç §ã§Ö§ß§ã§à§â§ß§í§ç §Ü§ß§à§á§à§Ü
     const buttons = document.querySelectorAll('.touch-btn, #attack-btn');
     
     const handleControl = (e, isStart) => {
@@ -99,7 +107,6 @@ function setupTouchControls() {
              keys[code] = isStart;
         } 
         
-        // §¥§Ý§ñ §Õ§Ø§à§Û§ã§ä§Ú§Ü§Ñ
         if (id === 'up') keys['KeyW'] = isStart;
         if (id === 'down') keys['KeyS'] = isStart;
         if (id === 'left') keys['KeyA'] = isStart;
@@ -107,7 +114,6 @@ function setupTouchControls() {
     };
     
     buttons.forEach(button => {
-        // §°§Ò§ì§Ö§Õ§Ú§ß§ñ§Ö§Þ touchstart/touchend §Ú mousedown/mouseup §Õ§Ý§ñ §±§¬/§ã§Ö§ß§ã§à§â§Ñ
         button.addEventListener('touchstart', (e) => handleControl(e, true));
         button.addEventListener('touchend', (e) => handleControl(e, false));
         button.addEventListener('mousedown', (e) => handleControl(e, true));
@@ -144,17 +150,18 @@ function updateInfo() {
     if (waveElement) waveElement.textContent = currentWave;
 }
 
-// §±§â§à§Ó§Ö§â§ñ§Ö§ä, §ñ§Ó§Ý§ñ§Ö§ä§ã§ñ §Ý§Ú §Ù§Ñ§Õ§Ñ§ß§ß§Ñ§ñ §Ü§à§à§â§Õ§Ú§ß§Ñ§ä§Ñ (x, y) §ä§Ñ§Û§Ý§à§Þ §ã§ä§Ö§ß§í (1)
 const isWall = (x, y) => {
     if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) return true;
     
     const tileX = Math.floor(x / TILE_SIZE);
     const tileY = Math.floor(y / TILE_SIZE);
-    return mapGrid[tileY] && mapGrid[tileY][tileX] === 1;
+    if (!mapGrid[tileY] || mapGrid[tileY].length <= tileX) return true; 
+
+    return mapGrid[tileY][tileX] === 1;
 };
 
 // ====================================================================
-// §­§°§¤§ª§¬§¡ §¥§£§ª§¨§¦§¯§ª§Á §³§´§²§¡§¨§¡ §ª §¬§°§­§­§ª§©§ª§«
+// §­§°§¤§ª§¬§¡ §¥§£§ª§¨§¦§¯§ª§Á §³§´§²§¡§¨§¡ §ª §¬§°§­§­§ª§©§ª§« (§¢§¦§© §ª§©§®§¦§¯§¦§¯§ª§«)
 // ====================================================================
 
 function handleGuardianMovement() {
@@ -171,7 +178,6 @@ function handleGuardianMovement() {
     let newX = guardian.x + dx;
     let newY = guardian.y + dy;
     
-    // 1. §±§â§à§Ó§Ö§â§ñ§Ö§Þ §Õ§Ó§Ú§Ø§Ö§ß§Ú§Ö §á§à X
     let canMoveX = true;
     if (dx !== 0) {
         const checkX = newX + (dx > 0 ? halfSize - 1 : -halfSize + 1); 
@@ -182,7 +188,6 @@ function handleGuardianMovement() {
         }
     }
     
-    // 2. §±§â§à§Ó§Ö§â§ñ§Ö§Þ §Õ§Ó§Ú§Ø§Ö§ß§Ú§Ö §á§à Y
     let canMoveY = true;
     if (dy !== 0) {
         const checkY = newY + (dy > 0 ? halfSize - 1 : -halfSize + 1); 
@@ -193,7 +198,6 @@ function handleGuardianMovement() {
         }
     }
     
-    // 3. §±§â§Ú§Þ§Ö§ß§ñ§Ö§Þ §Õ§Ó§Ú§Ø§Ö§ß§Ú§Ö
     if (canMoveX) {
         guardian.x = newX;
     }
@@ -201,12 +205,10 @@ function handleGuardianMovement() {
         guardian.y = newY;
     }
 
-    // §°§Ô§â§Ñ§ß§Ú§é§Ú§Ó§Ñ§Ö§Þ §³§ä§â§Ñ§Ø§Ñ §Ô§â§Ñ§ß§Ú§è§Ñ§Þ§Ú §Ó§ã§Ö§Û §¬§Ñ§â§ä§í
     const padding = halfSize;
     guardian.x = Math.max(padding, Math.min(MAP_WIDTH - padding, guardian.x));
     guardian.y = Math.max(padding, Math.min(MAP_HEIGHT - padding, guardian.y));
 
-    // 4. §°§Ò§â§Ñ§Ò§à§ä§Ü§Ñ §Ñ§ä§Ñ§Ü§Ú
     if (keys['Space'] && guardian.attackTimer <= 0) {
         guardian.isAttacking = true;
         guardian.attackTimer = guardian.attackCooldown;
@@ -225,6 +227,10 @@ function attackOrcs() {
         }
     });
 }
+
+// ====================================================================
+// §­§°§¤§ª§¬§¡ §¥§£§ª§¨§¦§¯§ª§Á §°§²§¬§°§£ (§ª§³§±§²§¡§£§­§¦§¯§¡!)
+// ====================================================================
 
 function handleOrcMovement() {
     const COLLISION_PADDING = 3; 
@@ -248,7 +254,8 @@ function handleOrcMovement() {
         orc.slowEffect = 0;
         const effectiveSpeed = (orc.baseSpeed || 1) * (1 - orc.slowEffect);
         
-        if (distance > effectiveSpeed) {
+        // §ª§³§±§²§¡§£§­§¦§¯§ª§¦ §©§¡§³§´§²§¦§£§¡§¯§ª§Á: §¦§ã§Ý§Ú §â§Ñ§ã§ã§ä§à§ñ§ß§Ú§Ö §Þ§Ö§ß§î§ê§Ö §ã§Ü§à§â§à§ã§ä§Ú, §á§Ö§â§Ö§Û§ä§Ú §Ü §ã§Ý§Ö§Õ§å§ð§ë§Ö§Þ§å §ä§Ñ§Û§Ý§å.
+        if (distance > effectiveSpeed) { 
             let moveX = dx / distance * effectiveSpeed;
             let moveY = dy / distance * effectiveSpeed;
             const halfSize = orc.size / 2;
@@ -284,6 +291,7 @@ function handleOrcMovement() {
             }
 
         } else {
+            // §°§â§Ü §Õ§à§ã§ä§Ú§Ô §è§Ö§Ý§Ú, §á§â§Ú§ß§å§Õ§Ú§ä§Ö§Ý§î§ß§à §å§ã§ä§Ñ§ß§Ñ§Ó§Ý§Ú§Ó§Ñ§Ö§Þ §á§à§Ù§Ú§è§Ú§ð §Ú §á§Ö§â§Ö§ç§à§Õ§Ú§Þ §Ü §ã§Ý§Ö§Õ§å§ð§ë§Ö§Þ§å
             orc.x = targetX;
             orc.y = targetY;
             orc.pathIndex++;
@@ -309,12 +317,13 @@ function handleTraps() {
     }
 }
 
+
 // ====================================================================
-// §µ§±§²§¡§£§­§¦§¯§ª§¦ §ª§¤§²§°§£§½§® §±§²§°§¸§¦§³§³§°§® §ª §¬§¡§®§¦§²§¡
+// §µ§±§²§¡§£§­§¦§¯§ª§¦ §ª§¤§²§°§£§½§® §±§²§°§¸§¦§³§³§°§® §ª §¬§¡§®§¦§²§¡ (§ª§³§±§²§¡§£§­§¦§¯§¡!)
 // ====================================================================
 
 function calculateCameraOffset() {
-    // §³§ä§â§Ñ§Ø §Õ§à§Ý§Ø§Ö§ß §Ò§í§ä§î §Ó §è§Ö§ß§ä§â§Ö §ï§Ü§â§Ñ§ß§Ñ (LOGICAL_CANVAS_WIDTH/2)
+    // §³§ä§â§Ñ§Ø §Õ§à§Ý§Ø§Ö§ß §Ò§í§ä§î §Ó §è§Ö§ß§ä§â§Ö §Ó§Ú§Õ§Ú§Þ§à§Û §à§Ò§Ý§Ñ§ã§ä§Ú (LOGICAL_CANVAS_WIDTH/2)
     const targetX = guardian.x - LOGICAL_CANVAS_WIDTH / 2;
     const targetY = guardian.y - LOGICAL_CANVAS_HEIGHT / 2;
     
@@ -340,10 +349,18 @@ function placeTrap(absX, absY) {
         y: y * TILE_SIZE + TILE_SIZE / 2
     };
 
-    const isSpawnOrRift = (x === path[0].x && y === path[0].y) || (x === rift.x / TILE_SIZE - 0.5 && y === rift.y / TILE_SIZE - 0.5);
+    const isSpawn = (x === path[0].x && y === path[0].y);
+    const isRift = (x === rift.x / TILE_SIZE - 0.5 && y === rift.y / TILE_SIZE - 0.5);
     
-    if (mapGrid[y] && mapGrid[y][x] === 0 && 
-        !isSpawnOrRift &&
+    // §±§â§à§Ó§Ö§â§Ü§Ñ §ß§Ñ §Ó§í§ç§à§Õ §Ù§Ñ §á§â§Ö§Õ§Ö§Ý§í mapGrid
+    if (y < 0 || y >= mapGrid.length || x < 0 || x >= mapGrid[0].length) {
+        showMessage('§¯§Ö§Ý§î§Ù§ñ §ã§ä§Ñ§Ó§Ú§ä§î §Ý§à§Ó§å§ê§Ü§å §Ù§Ñ §á§â§Ö§Õ§Ö§Ý§Ñ§Þ§Ú §Ü§Ñ§â§ä§í!');
+        return;
+    }
+
+    if (mapGrid[y][x] === 0 && 
+        !isSpawn &&
+        !isRift &&
         !traps.find(t => Math.floor(t.x / TILE_SIZE) === x && Math.floor(t.y / TILE_SIZE) === y)) 
     {
         if (gold >= trapData.cost) {
@@ -377,7 +394,7 @@ function handleCanvasClick(event) {
     // §¬§à§à§â§Õ§Ú§ß§Ñ§ä§í §Ü§Ý§Ú§Ü§Ñ §à§ä§ß§à§ã§Ú§ä§Ö§Ý§î§ß§à Canvas (§ã §å§é§Ö§ä§à§Þ §Þ§Ñ§ã§ê§ä§Ñ§Ò§Ú§â§à§Ó§Ñ§ß§Ú§ñ)
     const clickX = (event.clientX - rect.left) * (canvas.width / rect.width);
     const clickY = (event.clientY - rect.top) * (canvas.height / rect.height);
-    
+
     // §±§Ö§â§Ö§Ó§à§Õ§Ú§Þ §Ü§à§à§â§Õ§Ú§ß§Ñ§ä§í Canvas §Ó §Ñ§Ò§ã§à§Ý§ð§ä§ß§í§Ö §Ü§à§à§â§Õ§Ú§ß§Ñ§ä§í §¬§Ñ§â§ä§í (§å§é§Ú§ä§í§Ó§Ñ§Ö§Þ §ã§Õ§Ó§Ú§Ô §Ü§Ñ§Þ§Ö§â§í!)
     const absMapX = clickX + cameraOffset.x;
     const absMapY = clickY + cameraOffset.y;
@@ -392,15 +409,15 @@ function setupEventHandlers() {
     canvas.addEventListener('touchstart', (e) => {
         if (e.target === canvas) {
             e.preventDefault(); 
-            // §±§Ö§â§Ö§Õ§Ñ§Ö§Þ §Ü§à§à§â§Õ§Ú§ß§Ñ§ä§í §á§Ö§â§Ó§à§Ô§à §Ü§Ñ§ã§Ñ§ß§Ú§ñ
             handleCanvasClick(e.touches[0]); 
         }
     }, { passive: false });
     
     document.querySelectorAll('.controls-panel .trap-btn').forEach(button => {
         button.addEventListener('click', (e) => {
-            // §¢§Ö§â§Ö§Þ §á§Ö§â§Ó§å§ð §Ò§å§Ü§Ó§å §Ü§ß§à§á§Ü§Ú (A, T, S)
-            const type = e.currentTarget.textContent.trim().split(' ')[0].substring(0, 1); 
+            const text = e.currentTarget.textContent.trim();
+            // §¢§Ö§â§Ö§Þ §á§Ö§â§Ó§å§ð §Ò§å§Ü§Ó§å, §é§ä§à§Ò§í §ß§Ñ§Û§ä§Ú §ä§Ú§á §Ý§à§Ó§å§ê§Ü§Ú (A, T, S)
+            const type = text.split(' ')[0].substring(0, 1); 
             if (TRAPS_DATA[type]) {
                 setTrapMode(type);
             }
@@ -445,22 +462,20 @@ function startNextWave() {
 
 
 // ====================================================================
-// §°§´§°§¢§²§¡§¨§¦§¯§ª§¦ (DRAW) - §³ §ª§³§±§°§­§¾§©§°§£§¡§¯§ª§¦§® §³§¥§£§ª§¤§¡ §¬§¡§®§¦§²§½
+// §°§´§°§¢§²§¡§¨§¦§¯§ª§¦ (DRAW) - §¢§¦§© §ª§©§®§¦§¯§¦§¯§ª§«
 // ====================================================================
 
 function drawMap() {
     if (!ctx) return;
     
-    // §°§é§Ú§ë§Ñ§Ö§Þ Canvas
     ctx.clearRect(0, 0, LOGICAL_CANVAS_WIDTH, LOGICAL_CANVAS_HEIGHT); 
 
     mapGrid.forEach((row, y) => {
         row.forEach((cell, x) => {
-            // §±§â§Ú§Þ§Ö§ß§ñ§Ö§Þ §ã§Õ§Ó§Ú§Ô §Ü§Ñ§Þ§Ö§â§í
             const tileX = x * TILE_SIZE - cameraOffset.x;
             const tileY = y * TILE_SIZE - cameraOffset.y;
             
-            // §¦§ã§Ý§Ú §ä§Ñ§Û§Ý §ß§Ñ§ç§à§Õ§Ú§ä§ã§ñ §Ù§Ñ §á§â§Ö§Õ§Ö§Ý§Ñ§Þ§Ú §Ó§Ú§Õ§Ú§Þ§à§Û §à§Ò§Ý§Ñ§ã§ä§Ú, §á§â§à§á§å§ã§Ü§Ñ§Ö§Þ §Ö§Ô§à
+            // §°§á§ä§Ú§Þ§Ú§Ù§Ñ§è§Ú§ñ: §ß§Ö §â§Ú§ã§å§Ö§Þ, §Ö§ã§Ý§Ú §ä§Ñ§Û§Ý §Õ§Ñ§Ý§Ö§Ü§à §Ù§Ñ §á§â§Ö§Õ§Ö§Ý§Ñ§Þ§Ú §Ó§Ú§Õ§Ú§Þ§à§ã§ä§Ú
             if (tileX + TILE_SIZE < 0 || tileX > LOGICAL_CANVAS_WIDTH ||
                 tileY + TILE_SIZE < 0 || tileY > LOGICAL_CANVAS_HEIGHT) {
                 return;
@@ -469,7 +484,6 @@ function drawMap() {
             ctx.fillStyle = '#b0b0b0'; 
             ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
             
-            // §³§ä§Ö§ß§í 
             if (cell === 1) {
                 ctx.fillStyle = '#555'; 
                 ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
@@ -478,7 +492,6 @@ function drawMap() {
                 ctx.strokeRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
             }
             
-            // §£§ç§à§Õ/§²§Ú§æ§ä
             ctx.fillStyle = 'white';
             ctx.font = '16px Arial';
             ctx.textAlign = 'center';
@@ -521,13 +534,18 @@ function drawOrcs() {
     orcs.forEach(orc => {
         const drawX = orc.x - cameraOffset.x;
         const drawY = orc.y - cameraOffset.y;
+        
+        // §°§á§ä§Ú§Þ§Ú§Ù§Ñ§è§Ú§ñ: §ß§Ö §â§Ú§ã§å§Ö§Þ, §Ö§ã§Ý§Ú §°§â§Ü §Õ§Ñ§Ý§Ö§Ü§à §Ù§Ñ §á§â§Ö§Õ§Ö§Ý§Ñ§Þ§Ú §Ó§Ú§Õ§Ú§Þ§à§ã§ä§Ú
+        if (drawX + orc.size < 0 || drawX - orc.size > LOGICAL_CANVAS_WIDTH ||
+            drawY + orc.size < 0 || drawY - orc.size > LOGICAL_CANVAS_HEIGHT) {
+            return;
+        }
 
         ctx.fillStyle = '#3CB371'; 
         ctx.beginPath();
         ctx.arc(drawX, drawY, orc.size / 2, 0, Math.PI * 2); 
         ctx.fill();
         
-        // §±§à§Ý§à§ã§Ü§Ñ §Ù§Õ§à§â§à§Ó§î§ñ
         const barWidth = orc.size * 2;
         const barHeight = 3;
         const barY = drawY - orc.size * 2;
@@ -542,11 +560,9 @@ function drawOrcs() {
 function drawGuardian() {
     if (!ctx) return;
     
-    // §³§ä§â§Ñ§Ø §Ó§ã§Ö§Ô§Õ§Ñ §â§Ú§ã§å§Ö§ä§ã§ñ §Ó §Ñ§Ò§ã§à§Ý§ð§ä§ß§í§ç §Ü§à§à§â§Õ§Ú§ß§Ñ§ä§Ñ§ç §Þ§Ú§â§Ñ, §ß§à §ã§Þ§Ö§ë§Ö§ß§ß§í§ç §Ü§Ñ§Þ§Ö§â§à§Û
     const drawX = guardian.x - cameraOffset.x;
     const drawY = guardian.y - cameraOffset.y;
 
-    // §¿§æ§æ§Ö§Ü§ä §Ñ§ä§Ñ§Ü§Ú
     if (guardian.isAttacking) {
         ctx.strokeStyle = '#FFD700'; 
         ctx.lineWidth = 5;
@@ -564,7 +580,7 @@ function drawGuardian() {
 }
 
 // ====================================================================
-// §¸§ª§¬§­ §ª§¤§²§½ §ª §ª§¯§ª§¸§ª§¡§­§ª§©§¡§¸§ª§Á
+// §¸§ª§¬§­ §ª§¤§²§½ §ª §ª§¯§ª§¸§ª§¡§­§ª§©§¡§¸§ª§Á 
 // ====================================================================
 
 function update() {
@@ -575,11 +591,11 @@ function update() {
     }
     
     handleGuardianMovement(); 
-    calculateCameraOffset();
+    calculateCameraOffset(); 
 
     if (!gameRunning) return;
     
-    handleOrcMovement();
+    handleOrcMovement(); 
     handleTraps();
 }
 
@@ -596,26 +612,21 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-// §¶§å§ß§Ü§è§Ú§ñ §Õ§Ý§ñ §Ñ§Õ§Ñ§á§ä§Ñ§è§Ú§Ú §â§Ñ§Ù§Þ§Ö§â§Ñ Canvas
 function resizeCanvas() {
     if (!canvas) return;
 
-    // 1. §±§à§Ý§å§é§Ñ§Ö§Þ §æ§Ñ§Ü§ä§Ú§é§Ö§ã§Ü§å§ð §ê§Ú§â§Ú§ß§å, §Ü§à§ä§à§â§å§ð §Ù§Ñ§ß§Ú§Þ§Ñ§Ö§ä §ï§Ý§Ö§Þ§Ö§ß§ä Canvas §Ó CSS
     const container = document.getElementById('gameContainer');
-    // §ª§ã§á§à§Ý§î§Ù§å§Ö§Þ §ê§Ú§â§Ú§ß§å §Ü§à§ß§ä§Ö§Û§ß§Ö§â§Ñ, §à§Ô§â§Ñ§ß§Ú§é§Ö§ß§ß§å§ð max-width: 800px
     const displayWidth = container ? container.clientWidth : window.innerWidth; 
     
-    // 2. §µ§ã§ä§Ñ§ß§Ñ§Ó§Ý§Ú§Ó§Ñ§Ö§Þ §Ý§à§Ô§Ú§é§Ö§ã§Ü§Ú§Ö §â§Ñ§Ù§Þ§Ö§â§í Canvas (§Õ§Ý§ñ §â§Ö§ß§Õ§Ö§â§Ú§ß§Ô§Ñ)
+    // §µ§ã§ä§Ñ§ß§à§Ó§Ü§Ñ §Ý§à§Ô§Ú§é§Ö§ã§Ü§Ú§ç §â§Ñ§Ù§Þ§Ö§â§à§Ó Canvas
     canvas.width = LOGICAL_CANVAS_WIDTH;
     canvas.height = LOGICAL_CANVAS_HEIGHT;
 
-    // 3. §µ§ã§ä§Ñ§ß§Ñ§Ó§Ý§Ú§Ó§Ñ§Ö§Þ §æ§Ú§Ù§Ú§é§Ö§ã§Ü§å§ð §Ó§í§ã§à§ä§å §ï§Ý§Ö§Þ§Ö§ß§ä§Ñ (§Õ§Ý§ñ CSS), 
-    // §é§ä§à§Ò§í §à§ß §ã§à§ç§â§Ñ§ß§Ú§Ý §á§â§à§á§à§â§è§Ú§Ú (16:12 §Ú§Ý§Ú 4:3)
+    // §®§Ñ§ã§ê§ä§Ñ§Ò§Ú§â§à§Ó§Ñ§ß§Ú§Ö CSS §Õ§Ý§ñ §ã§à§ç§â§Ñ§ß§Ö§ß§Ú§ñ §á§â§à§á§à§â§è§Ú§Û
     const aspectRatio = LOGICAL_CANVAS_HEIGHT / LOGICAL_CANVAS_WIDTH;
     const displayHeight = displayWidth * aspectRatio;
     canvas.style.height = `${displayHeight}px`;
 
-    // 4. §±§Ö§â§Ö§ã§é§Ú§ä§í§Ó§Ñ§Ö§Þ §ã§Þ§Ö§ë§Ö§ß§Ú§Ö §Ü§Ñ§Þ§Ö§â§í 
     calculateCameraOffset();
 }
 
@@ -630,7 +641,6 @@ function initGame() {
     
     ctx = canvas.getContext('2d');
     
-    // §©§Ñ§á§å§ã§Ü§Ñ§Ö§Þ §Ñ§Õ§Ñ§á§ä§Ñ§è§Ú§ð §á§â§Ú §Ú§ß§Ú§è§Ú§Ñ§Ý§Ú§Ù§Ñ§è§Ú§Ú §Ú §á§â§Ú §Ú§Ù§Þ§Ö§ß§Ö§ß§Ú§Ú §â§Ñ§Ù§Þ§Ö§â§Ñ §à§Ü§ß§Ñ
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
