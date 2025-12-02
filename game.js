@@ -80,32 +80,26 @@ const touchControlsMap = {
 };
 
 function setupTouchControls() {
-    // §¯§Ñ§ç§à§Õ§Ú§Þ §Ó§ã§Ö §Ü§ß§à§á§Ü§Ú §å§á§â§Ñ§Ó§Ý§Ö§ß§Ú§ñ
     const buttons = document.querySelectorAll('.touch-btn, #attack-btn, #up-left, #up-right, #down-left, #down-right');
     
-    // §°§Ò§â§Ñ§Ò§à§ä§é§Ú§Ü §Õ§Ý§ñ §à§ã§ß§à§Ó§ß§í§ç §Ú §Õ§Ú§Ñ§Ô§à§ß§Ñ§Ý§î§ß§í§ç §Ü§ß§à§á§à§Ü
     const handleControl = (e, isStart) => {
         e.preventDefault();
         const id = e.currentTarget.id;
         const code = touchControlsMap[id];
         
-        // §¥§Ý§ñ §à§Õ§Ú§ß§à§é§ß§í§ç §Ü§ß§à§á§à§Ü (W, A, S, D, Space)
         if (code) {
              keys[code] = isStart;
         } 
         
-        // §¥§Ý§ñ §Õ§Ú§Ñ§Ô§à§ß§Ñ§Ý§î§ß§í§ç §Ü§ß§à§á§à§Ü (up-left, down-right §Ú §ä.§Õ.)
         if (id.includes('up')) keys['KeyW'] = isStart;
         if (id.includes('down')) keys['KeyS'] = isStart;
         if (id.includes('left')) keys['KeyA'] = isStart;
         if (id.includes('right')) keys['KeyD'] = isStart;
     };
     
-    // §±§â§Ú§Ó§ñ§Ù§í§Ó§Ñ§Ö§Þ §à§Ò§â§Ñ§Ò§à§ä§é§Ú§Ü§Ú §Ü §Ü§ß§à§á§Ü§Ñ§Þ
     buttons.forEach(button => {
         button.addEventListener('touchstart', (e) => handleControl(e, true));
         button.addEventListener('touchend', (e) => handleControl(e, false));
-        // §¥§à§Ò§Ñ§Ó§Ý§ñ§Ö§Þ §à§Ò§â§Ñ§Ò§à§ä§Ü§å §Þ§í§ê§Ú §Õ§Ý§ñ §±§¬, §Ö§ã§Ý§Ú §Ü§ß§à§á§Ü§Ú §Ó§Ú§Õ§Ú§Þ§í
         button.addEventListener('mousedown', (e) => handleControl(e, true));
         button.addEventListener('mouseup', (e) => handleControl(e, false));
     });
@@ -169,7 +163,7 @@ function handleGuardianMovement() {
     // 1. §±§â§à§Ó§Ö§â§ñ§Ö§Þ §Õ§Ó§Ú§Ø§Ö§ß§Ú§Ö §á§à X
     let canMoveX = true;
     if (dx !== 0) {
-        // -1/+1 §Õ§Ý§ñ §ß§Ñ§Õ§Ö§Ø§ß§à§Û §á§â§à§Ó§Ö§â§Ü§Ú §Ü§à§Ý§Ý§Ú§Ù§Ú§Ú
+        // §±§â§à§Ó§Ö§â§Ü§Ñ §ã §à§ä§ã§ä§å§á§à§Þ §Ó 1 §á§Ú§Ü§ã§Ö§Ý§î
         const checkX = newX + (dx > 0 ? halfSize - 1 : -halfSize + 1); 
         if (isWall(checkX, guardian.y - halfSize + 1) || 
             isWall(checkX, guardian.y + halfSize - 1))   
@@ -181,7 +175,7 @@ function handleGuardianMovement() {
     // 2. §±§â§à§Ó§Ö§â§ñ§Ö§Þ §Õ§Ó§Ú§Ø§Ö§ß§Ú§Ö §á§à Y
     let canMoveY = true;
     if (dy !== 0) {
-        // -1/+1 §Õ§Ý§ñ §ß§Ñ§Õ§Ö§Ø§ß§à§Û §á§â§à§Ó§Ö§â§Ü§Ú §Ü§à§Ý§Ý§Ú§Ù§Ú§Ú
+        // §±§â§à§Ó§Ö§â§Ü§Ñ §ã §à§ä§ã§ä§å§á§à§Þ §Ó 1 §á§Ú§Ü§ã§Ö§Ý§î
         const checkY = newY + (dy > 0 ? halfSize - 1 : -halfSize + 1); 
         if (isWall(guardian.x - halfSize + 1, checkY) || 
             isWall(guardian.x + halfSize - 1, checkY))   
@@ -230,19 +224,18 @@ function attackOrcs() {
 // ====================================================================
 
 function handleOrcMovement() {
-    // §µ§£§¦§­§ª§¹§¦§¯§¯§½§« §°§´§³§´§µ§± §Õ§Ý§ñ §°§â§Ü§à§Ó, §é§ä§à§Ò§í §à§ß§Ú §ß§Ö §Ù§Ñ§Õ§Ö§Ó§Ñ§Ý§Ú §å§Ô§Ý§í
-    const COLLISION_PADDING = 2; 
+    // §µ§£§¦§­§ª§¹§¦§¯§¯§½§« §°§´§³§´§µ§±: 3 §á§Ú§Ü§ã§Ö§Ý§ñ §Õ§Ý§ñ §á§â§Ö§Õ§à§ä§Ó§â§Ñ§ë§Ö§ß§Ú§ñ §á§â§à§ç§à§Ø§Õ§Ö§ß§Ú§ñ §ã§Ü§Ó§à§Ù§î §å§Ô§Ý§í
+    const COLLISION_PADDING = 3; 
 
     orcs.forEach(orc => {
         
         if (orc.pathIndex >= path.length) {
-            orc.health = -1; // §²§Ú§æ§ä §Õ§à§ã§ä§Ú§Ô§ß§å§ä
+            orc.health = -1; 
             riftHealth -= 1;
             return;
         }
 
         const targetTile = path[orc.pathIndex];
-        // §¸§Ö§Ý§î - §è§Ö§ß§ä§â §ã§Ý§Ö§Õ§å§ð§ë§Ö§Ô§à §ä§Ñ§Û§Ý§Ñ
         const targetX = targetTile.x * TILE_SIZE + TILE_SIZE / 2;
         const targetY = targetTile.y * TILE_SIZE + TILE_SIZE / 2;
         
@@ -277,7 +270,6 @@ function handleOrcMovement() {
             // §±§â§à§Ó§Ö§â§Ü§Ñ §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ §á§à Y (§ã §å§é§Ö§ä§à§Þ COLLISION_PADDING)
             if (moveY !== 0) {
                 const checkY = newY + (moveY > 0 ? halfSize - COLLISION_PADDING : -halfSize + COLLISION_PADDING); 
-                // §£§¡§¨§¯§°: §ª§ã§á§â§Ñ§Ó§Ý§Ö§ß§Ñ §à§ê§Ú§Ò§Ü§Ñ §Ó §á§â§à§ê§Ý§à§Û §á§â§à§Ó§Ö§â§Ü§Ö: 'orc.x + halfSize - halfSize' §ß§Ñ 'orc.x + halfSize - COLLISION_PADDING'
                 if (isWall(orc.x - halfSize + COLLISION_PADDING, checkY) || 
                     isWall(orc.x + halfSize - COLLISION_PADDING, checkY))   
                 {
@@ -343,9 +335,11 @@ function placeTrap(x, y) {
         y: y * TILE_SIZE + TILE_SIZE / 2
     };
 
-    // §±§â§à§Ó§Ö§â§Ü§Ñ, §é§ä§à §ï§ä§à §á§à§Ý (0), §ß§Ö §â§Ú§æ§ä, §Ú §Ý§à§Ó§å§ê§Ü§Ñ §ß§Ö §ã§ä§à§Ú§ä
+    // §±§â§à§Ó§Ö§â§Ü§Ñ, §é§ä§à §ï§ä§à §á§à§Ý (0), §ß§Ö §â§Ú§æ§ä/§ã§á§Ñ§å§ß, §Ú §Ý§à§Ó§å§ê§Ü§Ñ §ß§Ö §ã§ä§à§Ú§ä
+    const isSpawnOrRift = (x === path[0].x && y === path[0].y) || (x === rift.x / TILE_SIZE - 0.5 && y === rift.y / TILE_SIZE - 0.5);
+    
     if (mapGrid[y] && mapGrid[y][x] === 0 && 
-        !(tileCenter.x === rift.x && tileCenter.y === rift.y) &&
+        !isSpawnOrRift &&
         !traps.find(t => Math.floor(t.x / TILE_SIZE) === x && Math.floor(t.y / TILE_SIZE) === y)) 
     {
         if (gold >= trapData.cost) {
@@ -367,7 +361,7 @@ function placeTrap(x, y) {
             showMessage('§¯§Ö§Õ§à§ã§ä§Ñ§ä§à§é§ß§à §Ù§à§Ý§à§ä§Ñ!');
         }
     } else {
-        showMessage('§¯§Ö§Ý§î§Ù§ñ §ã§ä§Ñ§Ó§Ú§ä§î §Ý§à§Ó§å§ê§Ü§å §ß§Ñ §ã§ä§Ö§ß§í, §²§Ú§æ§ä §Ú§Ý§Ú §å§Ø§Ö §Ù§Ñ§ß§ñ§ä§í§Û §ä§Ñ§Û§Ý!');
+        showMessage('§¯§Ö§Ý§î§Ù§ñ §ã§ä§Ñ§Ó§Ú§ä§î §Ý§à§Ó§å§ê§Ü§å §ß§Ñ §ã§ä§Ö§ß§í, §²§Ú§æ§ä/§³§á§Ñ§å§ß §Ú§Ý§Ú §å§Ø§Ö §Ù§Ñ§ß§ñ§ä§í§Û §ä§Ñ§Û§Ý!');
     }
     trapMode = null; 
 }
@@ -376,7 +370,6 @@ function handleCanvasClick(event) {
     if (!trapMode || !canvas) return;
     const rect = canvas.getBoundingClientRect();
     
-    // §¬§à§â§â§Ö§Ü§ä§ß§í§Û §á§Ö§â§Ö§ã§é§Ö§ä §Ü§à§à§â§Õ§Ú§ß§Ñ§ä
     const x = (event.clientX - rect.left) / (rect.width / canvas.width);
     const y = (event.clientY - rect.top) / (rect.height / canvas.height);
     
@@ -387,7 +380,6 @@ function setupEventHandlers() {
     if (!canvas) return;
     canvas.addEventListener('click', handleCanvasClick);
     
-    // §°§Ò§â§Ñ§Ò§à§ä§Ü§Ñ §ã§Ö§ß§ã§à§â§ß§à§Ô§à §ß§Ñ§Ø§Ñ§ä§Ú§ñ §Õ§Ý§ñ §å§ã§ä§Ñ§ß§à§Ó§Ü§Ú §Ý§à§Ó§å§ê§Ö§Ü
     canvas.addEventListener('touchstart', (e) => {
         if (e.target === canvas) {
             e.preventDefault(); 
@@ -395,10 +387,8 @@ function setupEventHandlers() {
         }
     }, { passive: false });
     
-    // §±§â§Ú§Ó§ñ§Ù§Ü§Ñ §Ü§ß§à§á§à§Ü §å§á§â§Ñ§Ó§Ý§Ö§ß§Ú§ñ §Ý§à§Ó§å§ê§Ü§Ñ§Þ§Ú §Ó HTML
     document.querySelectorAll('.controls-panel .trap-btn').forEach(button => {
         button.addEventListener('click', (e) => {
-            // §±§à§Ý§å§é§Ñ§Ö§Þ §ä§Ú§á §Ý§à§Ó§å§ê§Ü§Ú §Ú§Ù §ä§Ö§Ü§ã§ä§Ñ §Ü§ß§à§á§Ü§Ú, §ß§Ñ§á§â§Ú§Þ§Ö§â "A §³§ä§â§Ö§Ý§í (50)" -> 'ARROW'
             const text = e.currentTarget.textContent.trim();
             const type = text.split(' ')[0].substring(1); 
             if (TRAPS_DATA[type]) {
@@ -467,6 +457,7 @@ function drawMap() {
                 ctx.lineWidth = 1;
                 ctx.strokeRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
             }
+            
             // §£§ç§à§Õ/§²§Ú§æ§ä
             ctx.fillStyle = 'white';
             ctx.font = '16px Arial';
