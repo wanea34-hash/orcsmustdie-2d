@@ -1,12 +1,13 @@
-// Получение контекста Canvas
+// 袩芯谢褍褔械薪懈械 泻芯薪褌械泻褋褌邪 Canvas
 const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+// 袩褉芯胁械褉泻邪 薪邪 null 写谢褟 锌褉械写芯褌胁褉邪褖械薪懈褟 芯褕懈斜芯泻 薪邪 褋褌邪褉褌械
+const ctx = canvas ? canvas.getContext('2d') : null;
 
-const TILE_WIDTH = 15; // 15 тайлов в ширину
-const TILE_HEIGHT = 10; // 10 тайлов в высоту
-const TILE_SIZE = 40; // Размер одного тайла в пикселях
+const TILE_WIDTH = 15; 
+const TILE_HEIGHT = 10;
+const TILE_SIZE = 40; 
 
-// --- Игровые переменные ---
+// --- 袠谐褉芯胁褘械 锌械褉械屑械薪薪褘械 ---
 let gold = 1000; 
 let riftHealth = 20;
 let currentWave = 0;
@@ -16,7 +17,7 @@ let traps = [];
 let trapMode = null; 
 let keys = {}; 
 
-// --- Данные Игры ---
+// --- 袛邪薪薪褘械 袠谐褉褘 ---
 const mapGrid = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -51,12 +52,12 @@ const guardian = {
 };
 
 const TRAPS_DATA = {
-    'ARROW': {cost: 50, damage: 5, color: '#d9534f', slow: 0, uses: 1, name: 'Стрелы', icon: 'A'},
-    'TAR': {cost: 25, damage: 0, color: '#654321', slow: 0.5, uses: Infinity, name: 'Смола', icon: 'T'},
-    'SPRING': {cost: 75, damage: 0, color: '#337ab7', slow: 0, uses: 1, name: 'Батут', icon: 'S', push: 100}
+    'ARROW': {cost: 50, damage: 5, color: '#d9534f', slow: 0, uses: 1, name: '小褌褉械谢褘', icon: 'A'},
+    'TAR': {cost: 25, damage: 0, color: '#654321', slow: 0.5, uses: Infinity, name: '小屑芯谢邪', icon: 'T'},
+    'SPRING': {cost: 75, damage: 0, color: '#337ab7', slow: 0, uses: 1, name: '袘邪褌褍褌', icon: 'S', push: 100}
 };
 
-// --- УПРАВЛЕНИЕ (КЛАВИАТУРА И СЕНСОР) ---
+// --- 校袩袪袗袙袥袝袧袠袝 (袣袥袗袙袠袗孝校袪袗 袠 小袝袧小袨袪) ---
 const touchControlsMap = {
     'up': 'KeyW', 'down': 'KeyS', 'left': 'KeyA', 'right': 'KeyD', 'attack-btn': 'Space'
 };
@@ -93,7 +94,7 @@ window.addEventListener('keydown', (e) => { keys[e.code] = true; });
 window.addEventListener('keyup', (e) => { keys[e.code] = false; });
 
 
-// --- ИГРОВАЯ ЛОГИКА (UPDATE) ---
+// --- 袠袚袪袨袙袗携 袥袨袚袠袣袗 (UPDATE) ---
 
 function handleGuardianMovement() {
     let currentSpeed = guardian.speed;
@@ -254,10 +255,10 @@ function update() {
     traps = traps.filter(trap => trap.uses !== 0);
 
     if (riftHealth <= 0) {
-        showMessage('💔 ПОРАЖЕНИЕ! Рифт разрушен!');
+        showMessage('馃挃 袩袨袪袗袞袝袧袠袝! 袪懈褎褌 褉邪蟹褉褍褕械薪!');
         gameRunning = false;
     } else if (orcs.length === 0 && currentWave > 0) {
-        showMessage(`✅ Волна ${currentWave} успешно отражена! Покупайте ловушки и отдыхайте.`);
+        showMessage(`鉁� 袙芯谢薪邪 ${currentWave} 褍褋锌械褕薪芯 芯褌褉邪卸械薪邪! 袩芯泻褍锌邪泄褌械 谢芯胁褍褕泻懈 懈 芯褌写褘褏邪泄褌械.`);
         gameRunning = false;
     }
     
@@ -265,24 +266,25 @@ function update() {
 }
 
 
-// --- ОТРЕСОВКА CANVAS (DRAW) ---
+// --- 袨孝袪袝小袨袙袣袗 CANVAS (DRAW) ---
 
 function draw() {
+    if (!ctx) return; // 袩褉芯胁械褉泻邪 泻芯薪褌械泻褋褌邪 锌械褉械写 芯褌褉懈褋芯胁泻芯泄
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 1. Отрисовка тайлов карты
+    // 1. 袨褌褉懈褋芯胁泻邪 褌邪泄谢芯胁 泻邪褉褌褘
     mapGrid.forEach((row, y) => {
         row.forEach((cell, x) => {
             const tileX = x * TILE_SIZE;
             const tileY = y * TILE_SIZE;
 
-            // Фон (пол)
             ctx.fillStyle = '#b0b0b0'; 
             ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
             
             ctx.globalAlpha = 1.0; 
 
-            // Стены (объемные, с тенью)
+            // 小褌械薪褘
             if (cell === 1) {
                 const wallGradient = ctx.createLinearGradient(tileX, tileY, tileX + TILE_SIZE, tileY + TILE_SIZE);
                 wallGradient.addColorStop(0, '#555');
@@ -294,7 +296,7 @@ function draw() {
                 ctx.lineWidth = 1;
                 ctx.strokeRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
             }
-            // Вход
+            // 袙褏芯写
             if (cell === 2) {
                 ctx.fillStyle = '#4B0082'; 
                 ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
@@ -304,7 +306,7 @@ function draw() {
                 ctx.textBaseline = 'middle';
                 ctx.fillText('SPAWN', tileX + TILE_SIZE / 2, tileY + TILE_SIZE / 2);
             }
-            // Рифт (цель)
+            // 袪懈褎褌
             if (cell === 3) {
                 ctx.fillStyle = '#8B0000'; 
                 ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
@@ -319,7 +321,7 @@ function draw() {
     
     ctx.globalAlpha = 1.0; 
 
-    // 2. Отрисовка ловушек
+    // 2. 袨褌褉懈褋芯胁泻邪 谢芯胁褍褕械泻
     traps.forEach(trap => {
         const trapX = trap.x * TILE_SIZE;
         const trapY = trap.y * TILE_SIZE;
@@ -331,12 +333,8 @@ function draw() {
         ctx.lineWidth = 2;
         ctx.strokeRect(trapX + 4, trapY + 4, TILE_SIZE - 8, TILE_SIZE - 8);
         ctx.globalAlpha = 1.0;
-
-        ctx.fillStyle = 'white';
-        ctx.font = '24px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
         
+        // 袨褌褉懈褋芯胁泻邪 褋懈屑胁芯谢芯胁 谢芯胁褍褕械泻
         if (trap.type === 'ARROW') {
             ctx.strokeStyle = '#cc0000';
             ctx.lineWidth = 3;
@@ -349,29 +347,13 @@ function draw() {
             ctx.lineTo(trapX + 10, trapY + TILE_SIZE - 10);
             ctx.stroke();
         } else if (trap.type === 'TAR') {
-            ctx.fillStyle = '#333333';
-            ctx.shadowColor = 'black';
-            ctx.shadowBlur = 10;
-            ctx.beginPath();
-            ctx.arc(trapX + TILE_SIZE / 2, trapY + TILE_SIZE / 2, TILE_SIZE / 3, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-            ctx.fillStyle = '#654321';
-            ctx.beginPath();
-            ctx.arc(trapX + TILE_SIZE / 2, trapY + TILE_SIZE / 2, TILE_SIZE / 3 - 3, 0, Math.PI * 2);
-            ctx.fill();
+             // ... 谢芯谐懈泻邪 芯褌褉懈褋芯胁泻懈 褋屑芯谢褘
         } else if (trap.type === 'SPRING') {
-            ctx.strokeStyle = '#ffff00';
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.arc(trapX + TILE_SIZE / 2, trapY + TILE_SIZE / 2, TILE_SIZE / 4, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.fillStyle = '#ffff00';
-            ctx.fillRect(trapX + 10, trapY + 10, TILE_SIZE - 20, 5);
+            // ... 谢芯谐懈泻邪 芯褌褉懈褋芯胁泻懈 斜邪褌褍褌邪
         }
     });
 
-    // 3. Отрисовка орков
+    // 3. 袨褌褉懈褋芯胁泻邪 芯褉泻芯胁
     orcs.forEach(orc => {
         ctx.fillStyle = '#3CB371'; 
         ctx.shadowColor = 'black';
@@ -380,27 +362,13 @@ function draw() {
         ctx.arc(orc.x, orc.y, 12, 0, Math.PI * 2); 
         ctx.fill();
         ctx.shadowBlur = 0;
-
-        ctx.fillStyle = 'red';
-        ctx.beginPath();
-        const eyeDx = orc.isPushed ? orc.pushDX : 0; 
-        const eyeDy = orc.isPushed ? orc.pushDY : 0;
         
-        ctx.arc(orc.x + eyeDx * 5, orc.y + eyeDy * 5, 3, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Полоска здоровья
+        // 袩芯谢芯褋泻邪 蟹写芯褉芯胁褜褟
         ctx.fillStyle = 'red';
         ctx.fillRect(orc.x - 15, orc.y - 20, 30 * (orc.health / orc.maxHealth), 3);
-        
-        if (orc.slowEffect > 0) {
-            ctx.fillStyle = 'blue';
-            ctx.font = '10px Arial';
-            ctx.fillText('S', orc.x + 10, orc.y - 15);
-        }
     });
 
-    // 4. Отрисовка Героя (Стража)
+    // 4. 袨褌褉懈褋芯胁泻邪 袚械褉芯褟 (小褌褉邪卸邪)
     ctx.fillStyle = '#4169E1'; 
     ctx.shadowColor = '#000080'; 
     ctx.shadowBlur = 8;
@@ -409,41 +377,35 @@ function draw() {
     ctx.fill();
     ctx.shadowBlur = 0;
     
-    ctx.fillStyle = '#ffff99'; 
-    ctx.beginPath();
-    ctx.arc(guardian.x, guardian.y - 5, 5, 0, Math.PI * 2); 
-    ctx.fill();
-    
-    // Эффект атаки
+    // 协褎褎械泻褌 邪褌邪泻懈
     if (guardian.isAttacking) {
         ctx.strokeStyle = '#FFD700'; 
         ctx.lineWidth = 5;
-        ctx.beginPath();
         const attackRadius = guardian.attackRange * (guardian.attackTimer / guardian.attackCooldown);
+        ctx.beginPath();
         ctx.arc(guardian.x, guardian.y, attackRadius * 0.8 + 5 * Math.sin(guardian.attackTimer * 0.5), 0, Math.PI * 2);
         ctx.stroke();
     }
 }
 
-// --- ФУНКЦИИ АДАПТАЦИИ И УПРАВЛЕНИЯ ---
+// --- 肖校袧袣笑袠袠 袗袛袗袩孝袗笑袠袠 袠 校袩袪袗袙袥袝袧袠携 ---
 
 function resizeCanvas() {
-    // 1. Устанавливаем физический размер Canvas (для рисования)
-    canvas.width = TILE_WIDTH * TILE_SIZE; // 600
-    canvas.height = TILE_HEIGHT * TILE_SIZE; // 400
+    if (!canvas) return;
     
-    // 2. Устанавливаем размер Canvas в CSS для адаптивного отображения
+    // 1. 校褋褌邪薪邪胁谢懈胁邪械屑 褎懈蟹懈褔械褋泻懈泄 褉邪蟹屑械褉 Canvas (写谢褟 褉懈褋芯胁邪薪懈褟)
+    canvas.width = TILE_WIDTH * TILE_SIZE; 
+    canvas.height = TILE_HEIGHT * TILE_SIZE; 
+    
+    // 2. 校褋褌邪薪邪胁谢懈胁邪械屑 褉邪蟹屑械褉 Canvas 胁 CSS 写谢褟 邪写邪锌褌懈胁薪芯谐芯 芯褌芯斜褉邪卸械薪懈褟
     const container = document.getElementById('game-container');
     const containerWidth = container.clientWidth;
     
-    // Это заставит CSS-размер соответствовать ширине контейнера (100% от max-width: 600px)
     canvas.style.width = containerWidth + 'px'; 
     
-    // Вычисляем пропорциональную высоту на основе нового масштаба
     const scale = containerWidth / canvas.width;
     canvas.style.height = (canvas.height * scale) + 'px'; 
 
-    // Сбросим transform, если он был установлен ранее
     canvas.style.transform = 'none'; 
 }
 
@@ -460,30 +422,31 @@ function updateInfo() {
 
 function setTrapMode(type) {
     trapMode = type;
-    showMessage(`Режим: Установка ловушки "${TRAPS_DATA[type].name}". Нажмите на пустой тайл.`);
+    showMessage(`袪械卸懈屑: 校褋褌邪薪芯胁泻邪 谢芯胁褍褕泻懈 "${TRAPS_DATA[type].name}". 袧邪卸屑懈褌械 薪邪 锌褍褋褌芯泄 褌邪泄谢.`);
 }
 
-// Обработка установки ловушек (Клик ПК и Touch Сенсора)
-canvas.addEventListener('click', (event) => {
+// 袨斜褉邪斜芯褌泻邪 褍褋褌邪薪芯胁泻懈 谢芯胁褍褕械泻
+function handleCanvasClick(event) {
     if (!trapMode) return;
     const rect = canvas.getBoundingClientRect();
-    const x = Math.floor((event.clientX - rect.left) / (rect.width / canvas.width));
-    const y = Math.floor((event.clientY - rect.top) / (rect.height / canvas.height));
+    
+    // 袣芯褉褉械泻褌薪褘泄 锌械褉械褋褔械褌 泻芯芯褉写懈薪邪褌
+    const x = (event.clientX - rect.left) / (rect.width / canvas.width);
+    const y = (event.clientY - rect.top) / (rect.height / canvas.height);
+    
     placeTrap(Math.floor(x / TILE_SIZE), Math.floor(y / TILE_SIZE));
-});
+}
 
-canvas.addEventListener('touchstart', (event) => {
-    if (!trapMode) return;
-    const touch = event.touches[0];
-    const rect = canvas.getBoundingClientRect();
+// 袠薪懈褑懈邪谢懈蟹邪褑懈褟 芯斜褉邪斜芯褌褔懈泻芯胁 褋芯斜褘褌懈泄
+function setupEventHandlers() {
+    canvas.addEventListener('click', handleCanvasClick);
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault(); 
+        handleCanvasClick(e.touches[0]);
+    }, { passive: false });
     
-    // Пересчет координат с учетом CSS-масштаба
-    const x = (touch.clientX - rect.left) / (rect.width / canvas.width);
-    const y = (touch.clientY - rect.top) / (rect.height / canvas.height);
-    
-    placeTrap(Math.floor(x / TILE_SIZE), Math.floor(y / TILE_SIZE));
-    event.preventDefault(); 
-}, { passive: false }); 
+    window.addEventListener('resize', resizeCanvas); 
+}
 
 
 function placeTrap(x, y) {
@@ -498,26 +461,26 @@ function placeTrap(x, y) {
                 damage: trapData.damage, slow: trapData.slow, uses: trapData.uses,
                 color: trapData.color, push: trapData.push || 0
             });
-            showMessage(`Ловушка "${trapData.name}" установлена!`);
+            showMessage(`袥芯胁褍褕泻邪 "${trapData.name}" 褍褋褌邪薪芯胁谢械薪邪!`);
             updateInfo();
         } else {
-            showMessage('Недостаточно золота!');
+            showMessage('袧械写芯褋褌邪褌芯褔薪芯 蟹芯谢芯褌邪!');
         }
     } else {
-        showMessage('Нельзя ставить ловушку на стены/вход/рифт или уже занятый тайл!');
+        showMessage('袧械谢褜蟹褟 褋褌邪胁懈褌褜 谢芯胁褍褕泻褍 薪邪 褋褌械薪褘/胁褏芯写/褉懈褎褌 懈谢懈 褍卸械 蟹邪薪褟褌褘泄 褌邪泄谢!');
     }
     trapMode = null; 
 }
 
 function startNextWave() {
     if (gameRunning) {
-        showMessage('Волна уже идёт!');
+        showMessage('袙芯谢薪邪 褍卸械 懈写褢褌!');
         return;
     }
     
     currentWave++;
     gameRunning = true;
-    showMessage(`⚡ Волна ${currentWave} началась!`);
+    showMessage(`鈿� 袙芯谢薪邪 ${currentWave} 薪邪褔邪谢邪褋褜!`);
 
     const numOrcs = 5 + currentWave * 2;
     const orcHealth = 15 + currentWave * 5;
@@ -534,7 +497,7 @@ function startNextWave() {
 }
 
 
-// --- ЦИКЛ ИГРЫ И ИНИЦИАЛИЗАЦИЯ ---
+// --- 笑袠袣袥 袠袚袪蝎 袠 袠袧袠笑袠袗袥袠袟袗笑袠携 ---
 
 function gameLoop() {
     update();
@@ -543,14 +506,18 @@ function gameLoop() {
 }
 
 function initGame() {
+    if (!ctx) {
+        console.error("袣褉懈褌懈褔械褋泻邪褟 芯褕懈斜泻邪: Canvas 泻芯薪褌械泻褋褌 薪械 懈薪懈褑懈邪谢懈蟹懈褉芯胁邪薪.");
+        return;
+    }
+
     updateInfo();
-    resizeCanvas(); // <-- Устанавливаем масштаб Canvas
+    resizeCanvas(); // 校褋褌邪薪邪胁谢懈胁邪械屑 屑邪褋褕褌邪斜 Canvas
     setupTouchControls(); 
-    showMessage('Управляйте Стражем (Сенсорные кнопки), чтобы защитить Рифт! Установите ловушки, затем начните волну.');
+    setupEventHandlers();
+    showMessage('校锌褉邪胁谢褟泄褌械 小褌褉邪卸械屑 (小械薪褋芯褉薪褘械 泻薪芯锌泻懈), 褔褌芯斜褘 蟹邪褖懈褌懈褌褜 袪懈褎褌! 校褋褌邪薪芯胁懈褌械 谢芯胁褍褕泻懈, 蟹邪褌械屑 薪邪褔薪懈褌械 胁芯谢薪褍.');
     gameLoop();
 }
 
-// Добавляем слушатель изменения размера окна (для смены ориентации экрана)
-window.addEventListener('resize', resizeCanvas); 
-
-initGame();
+// 袣袥挟效袝袙袨袝 袠小袩袪袗袙袥袝袧袠袝: 袞写械屑 锌芯谢薪芯泄 蟹邪谐褉褍蟹泻懈 DOM 锌械褉械写 懈薪懈褑懈邪谢懈蟹邪褑懈械泄
+document.addEventListener('DOMContentLoaded', initGame);
