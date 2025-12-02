@@ -1,185 +1,43 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8"> 
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>ORCS MUST DIE! 2D Прототип</title>
-    
-    <style>
-        body {
-            margin: 0;
-            background-color: #333;
-            color: white;
-            font-family: Arial, sans-serif;
-            overflow-x: hidden;
-            height: 100vh; 
-            display: flex;
-            flex-direction: column;
-        }
-        
-        #gameContainer {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            max-width: 800px; 
-            margin: 0 auto;
-            flex-grow: 1; 
-            padding: 10px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        h1 {
-            font-size: 1.2em;
-            text-align: center;
-            margin: 5px 0 10px 0;
-        }
-
-        #gameCanvas {
-            /* Стили для адаптивности */
-            display: block;
-            width: 100%; 
-            height: auto; 
-            border: 2px solid #555;
-            background-color: #333;
-            box-sizing: border-box;
-        }
-
-        .info-panel {
-            display: flex;
-            justify-content: space-around;
-            width: 100%;
-            padding: 10px 0;
-            font-size: 1.1em;
-            font-weight: bold;
-        }
-
-        .controls-panel {
-            width: 100%;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 5px;
-            margin-top: 10px;
-        }
-
-        .trap-btn, .wave-btn {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            flex-grow: 1;
-            min-width: 80px;
-        }
-
-        .trap-btn {
-            background-color: #5cb85c; 
-            color: white;
-        }
-
-        .wave-btn {
-            background-color: #d9534f; 
-            color: white;
-            flex-basis: 100%; 
-            margin-top: 5px;
-        }
-
-        #message {
-            text-align: center;
-            min-height: 20px;
-            margin: 10px 0;
-            font-style: italic;
-        }
-
-        /* Стиль для сенсорного джойстика */
-        .joystick-container {
-            display: grid;
-            grid-template-areas: 
-                ". up ."
-                "left center right"
-                ". down .";
-            width: 180px;
-            height: 180px;
-            margin: 10px;
-        }
-
-        .touch-btn {
-            background-color: #555;
-            color: white;
-            border: 1px solid #777;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2em;
-            cursor: pointer;
-            user-select: none;
-            padding: 5px;
-            touch-action: manipulation; /* Улучшает отзывчивость на мобильных */
-        }
-
-        #up { grid-area: up; }
-        #down { grid-area: down; }
-        #left { grid-area: left; }
-        #right { grid-area: right; }
-        
-        #controls-wrapper {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            width: 100%;
-            padding-bottom: 20px;
-        }
-        
-        #attack-btn {
-            background-color: #c9302c; 
-            color: white;
-            border-radius: 50%;
-            width: 80px;
-            height: 80px;
-            font-size: 1.5em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            user-select: none;
-        }
-
-    </style>
+    <title>ORCS MUST DIE! 2D Прототип (Canvas)</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="gameContainer">
         <h1>ORCS MUST DIE! 2D Прототип (Canvas)</h1>
-
-        <canvas id="gameCanvas"></canvas>
-
+        
+        <canvas id="gameCanvas" width="640" height="480"></canvas>
+        
         <div class="info-panel">
             <span>Золото: <span id="gold">1000</span></span>
             <span>Рифт (Жизни): <span id="rift-health">20</span></span>
             <span>Текущая Волна: <span id="current-wave">0</span></span>
         </div>
-
+        
         <div class="controls-panel">
-            <button class="trap-btn">A Стрелы (50)</button>
-            <button class="trap-btn">T Смола (25)</button>
-            <button class="trap-btn">S Батут (75)</button>
-            <button class="wave-btn">Начать Волну!</button>
+            <button class="trap-btn" data-type="A">A Стрелы (50)</button>
+            <button class="trap-btn" data-type="T">T Смола (25)</button>
+            <button class="trap-btn" data-type="S">S Батут (75)</button>
         </div>
+        
+        <button class="wave-btn" id="start-wave-btn">Начать Волну!</button>
 
         <p id="message">Управляйте Стражем (WASD/Сенсор), чтобы защитить Рифт! Начните волну.</p>
 
-        <div id="controls-wrapper">
-            <div class="joystick-container">
-                <div id="up" class="touch-btn">W</div>
-                <div id="left" class="touch-btn">A</div>
-                <div id="right" class="touch-btn">D</div>
-                <div id="down" class="touch-btn">S</div>
-                <div id="center" class="touch-btn" style="grid-area: center; visibility: hidden;"></div>
+        <div class="mobile-controls">
+            <div class="d-pad">
+                <button id="up" class="touch-btn">W</button>
+                <div class="horizontal">
+                    <button id="left" class="touch-btn">A</button>
+                    <button id="right" class="touch-btn">D</button>
+                </div>
+                <button id="down" class="touch-btn">S</button>
             </div>
-
-            <button id="attack-btn" class="touch-btn">УДАР</button>
+            <button id="attack-btn" class="touch-btn attack-btn">УДАР</button>
         </div>
     </div>
 
