@@ -102,38 +102,62 @@ window.addEventListener('keyup', (e) => { keys[e.code] = false; });
 
 // --- §ª§¤§²§°§£§¡§Á §­§°§¤§ª§¬§¡ (UPDATE) ---
 
+// ********* §¯§°§£§°§¦ §ª§³§±§²§¡§£§­§¦§¯§ª§¦: §¯§¦§±§²§°§·§°§¥§ª§®§½§¦ §³§´§¦§¯§½ *********
 function handleGuardianMovement() {
     let currentSpeed = guardian.speed;
-    let newX = guardian.x;
-    let newY = guardian.y;
+    let dx = 0;
+    let dy = 0;
     
-    if (keys['KeyW']) newY -= currentSpeed;
-    if (keys['KeyS']) newY += currentSpeed;
-    if (keys['KeyA']) newX -= currentSpeed;
-    if (keys['KeyD']) newX += currentSpeed;
+    // 1. §°§á§â§Ö§Õ§Ö§Ý§ñ§Ö§Þ §Ø§Ö§Ý§Ñ§Ö§Þ§à§Ö §ß§Ñ§á§â§Ñ§Ó§Ý§Ö§ß§Ú§Ö §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ
+    if (keys['KeyW']) dy -= currentSpeed;
+    if (keys['KeyS']) dy += currentSpeed;
+    if (keys['KeyA']) dx -= currentSpeed;
+    if (keys['KeyD']) dx += currentSpeed;
     
-    const tileX = Math.floor(newX / TILE_SIZE);
-    const tileY = Math.floor(newY / TILE_SIZE);
+    let newX = guardian.x + dx;
+    let newY = guardian.y + dy;
 
-    if (mapGrid[tileY] && mapGrid[tileY][tileX] === 1) {
-        currentSpeed *= 0.5; 
+    // 2. §±§â§à§Ó§Ö§â§ñ§Ö§Þ §ã§ä§Ö§ß§å §Õ§Ý§ñ §ß§à§Ó§à§Û §á§à§Ù§Ú§è§Ú§Ú (§á§â§à§ã§ä§Ñ§ñ §á§â§à§Ó§Ö§â§Ü§Ñ §è§Ö§ß§ä§â§Ñ)
+    const newTileX = Math.floor(newX / TILE_SIZE);
+    const newTileY = Math.floor(newY / TILE_SIZE);
+
+    // 3. §±§²§ª§®§¦§¯§Á§¦§® §¥§£§ª§¨§¦§¯§ª§¦, §´§°§­§¾§¬§° §¦§³§­§ª §¯§°§£§½§« §´§¡§«§­ §¯§¦ §Á§£§­§Á§¦§´§³§Á §³§´§¦§¯§°§« (1)
+    if (mapGrid[newTileY] && mapGrid[newTileY][newTileX] !== 1) {
+        guardian.x = newX;
+        guardian.y = newY;
+    } else {
+        // §¦§ã§Ý§Ú §ß§à§Ó§Ñ§ñ §á§à§Ù§Ú§è§Ú§ñ ¡ª §ã§ä§Ö§ß§Ñ, §á§í§ä§Ñ§Ö§Þ§ã§ñ §á§â§à§Ó§Ö§â§Ú§ä§î §Õ§Ó§Ú§Ø§Ö§ß§Ú§Ö §á§à §à§Õ§ß§à§Û §à§ã§Ú (§Õ§Ý§ñ §ã§Ü§à§Ý§î§Ø§Ö§ß§Ú§ñ).
+        
+        // §±§à§á§í§ä§Ü§Ñ §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ §ä§à§Ý§î§Ü§à §á§à X:
+        let testX = guardian.x + dx;
+        let testTileX = Math.floor(testX / TILE_SIZE);
+        // §ª§ã§á§à§Ý§î§Ù§å§Ö§Þ '| 0' §Ü§Ñ§Ü §Ò§í§ã§ä§â§í§Û Math.floor §Õ§Ý§ñ Y
+        if (mapGrid[guardian.y / TILE_SIZE | 0] && mapGrid[guardian.y / TILE_SIZE | 0][testTileX] !== 1) {
+            guardian.x = testX;
+        }
+
+        // §±§à§á§í§ä§Ü§Ñ §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ §ä§à§Ý§î§Ü§à §á§à Y:
+        let testY = guardian.y + dy;
+        let testTileY = Math.floor(testY / TILE_SIZE);
+        // §ª§ã§á§à§Ý§î§Ù§å§Ö§Þ '| 0' §Ü§Ñ§Ü §Ò§í§ã§ä§â§í§Û Math.floor §Õ§Ý§ñ X
+        if (mapGrid[testTileY] && mapGrid[testTileY][guardian.x / TILE_SIZE | 0] !== 1) {
+            guardian.y = testY;
+        }
     }
     
-    if (keys['KeyW']) guardian.y -= currentSpeed;
-    if (keys['KeyS']) guardian.y += currentSpeed;
-    if (keys['KeyA']) guardian.x -= currentSpeed;
-    if (keys['KeyD']) guardian.x += currentSpeed;
-    
+    // 4. §°§Ô§â§Ñ§ß§Ú§é§Ú§Ó§Ñ§Ö§Þ §³§ä§â§Ñ§Ø§Ñ §Ô§â§Ñ§ß§Ú§è§Ñ§Þ§Ú Canvas
     const padding = guardian.size / 2;
     guardian.x = Math.max(padding, Math.min(canvas.width - padding, guardian.x));
     guardian.y = Math.max(padding, Math.min(canvas.height - padding, guardian.y));
 
+    // 5. §°§Ò§â§Ñ§Ò§à§ä§Ü§Ñ §Ñ§ä§Ñ§Ü§Ú
     if (keys['Space'] && guardian.attackTimer <= 0) {
         guardian.isAttacking = true;
         guardian.attackTimer = guardian.attackCooldown;
         attackOrcs();
     }
 }
+// ********* §¬§°§¯§¦§¸ §¯§°§£§°§¤§° §ª§³§±§²§¡§£§­§¦§¯§ª§Á *********
 
 function attackOrcs() {
     orcs.forEach(orc => {
@@ -195,6 +219,7 @@ function update() {
         const currentTileY = Math.floor(orc.y / TILE_SIZE);
         orc.slowEffect = 0;
 
+        // §°§â§Ü§Ú §ä§à§Ø§Ö §Ù§Ñ§Þ§Ö§Õ§Ý§ñ§ð§ä§ã§ñ §ã§ä§Ö§ß§Ñ§Þ§Ú
         if (mapGrid[currentTileY] && mapGrid[currentTileY][currentTileX] === 1) {
             orc.slowEffect = 0.5; 
         }
@@ -275,7 +300,7 @@ function update() {
 // --- §°§´§²§¦§³§°§£§¬§¡ CANVAS (DRAW) ---
 
 function draw() {
-    if (!ctx) return; // §±§â§à§Ó§Ö§â§Ü§Ñ §Ü§à§ß§ä§Ö§Ü§ã§ä§Ñ §á§Ö§â§Ö§Õ §à§ä§â§Ú§ã§à§Ó§Ü§à§Û
+    if (!ctx) return; 
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -291,7 +316,7 @@ function draw() {
             
             ctx.globalAlpha = 1.0; 
 
-            // §³§ä§Ö§ß§í (§à§Ò§ì§Ö§Þ§ß§í§Ö, §ã §ä§Ö§ß§î§ð)
+            // §³§ä§Ö§ß§í 
             if (cell === 1) {
                 const wallGradient = ctx.createLinearGradient(tileX, tileY, tileX + TILE_SIZE, tileY + TILE_SIZE);
                 wallGradient.addColorStop(0, '#555');
@@ -413,8 +438,6 @@ function resizeCanvas() {
     canvas.style.transform = 'none'; 
 }
 
-// ... (§¶§å§ß§Ü§è§Ú§Ú showMessage, updateInfo, setTrapMode)
-
 function showMessage(text) {
     const messageElement = document.getElementById('message');
     if (messageElement) {
@@ -431,9 +454,6 @@ function updateInfo() {
     if (riftElement) riftElement.textContent = riftHealth;
     if (waveElement) waveElement.textContent = currentWave;
 }
-
-
-// ... (§¶§å§ß§Ü§è§Ú§Ú setTrapMode, placeTrap, startNextWave)
 
 function setTrapMode(type) {
     trapMode = type;
