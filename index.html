@@ -130,6 +130,18 @@
     
     <button id="attack-btn">УДАР</button>
 
+        <script>
+        // Добавляем alert для проверки, запущен ли скрипт вообще
+        alert("Скрипт game.js загружается."); 
+    </script>
     <script src="game.js"></script>
+    <script>
+        // Проверяем, был ли инициализирован контекст Canvas
+        if (typeof initGame === 'function') {
+            alert("Функция initGame найдена. Должна начаться отрисовка.");
+        } else {
+            alert("Критическая ошибка: Файл game.js не загружен или содержит ошибку.");
+        }
+    </script>
 </body>
 </html>
