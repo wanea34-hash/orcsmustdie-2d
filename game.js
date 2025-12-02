@@ -80,34 +80,37 @@ const touchControlsMap = {
 };
 
 function setupTouchControls() {
-    const buttons = document.querySelectorAll('.touch-btn, #attack-btn');
+    // §¯§Ñ§ç§à§Õ§Ú§Þ §Ó§ã§Ö §Ü§ß§à§á§Ü§Ú §å§á§â§Ñ§Ó§Ý§Ö§ß§Ú§ñ
+    const buttons = document.querySelectorAll('.touch-btn, #attack-btn, #up-left, #up-right, #down-left, #down-right');
     
-    buttons.forEach(button => {
-        const code = touchControlsMap[button.id];
-        // §ª§ã§á§à§Ý§î§Ù§å§Ö§Þ 'touchstart' §Ú 'touchend' §Õ§Ý§ñ §Þ§à§Ò§Ú§Ý§î§ß§í§ç
-        button.addEventListener('touchstart', (e) => { e.preventDefault(); if (code) { keys[code] = true; } });
-        button.addEventListener('touchend', (e) => { e.preventDefault(); if (code) { keys[code] = false; } });
-    });
-    
-    // §°§Ò§â§Ñ§Ò§à§ä§Ü§Ñ §Õ§Ú§Ñ§Ô§à§ß§Ñ§Ý§î§ß§í§ç §Ü§ß§à§á§à§Ü (up-left, down-right §Ú §ä.§Õ.)
-    const handleDiagonal = (e, isStart) => {
+    // §°§Ò§â§Ñ§Ò§à§ä§é§Ú§Ü §Õ§Ý§ñ §à§ã§ß§à§Ó§ß§í§ç §Ú §Õ§Ú§Ñ§Ô§à§ß§Ñ§Ý§î§ß§í§ç §Ü§ß§à§á§à§Ü
+    const handleControl = (e, isStart) => {
         e.preventDefault();
         const id = e.currentTarget.id;
+        const code = touchControlsMap[id];
+        
+        // §¥§Ý§ñ §à§Õ§Ú§ß§à§é§ß§í§ç §Ü§ß§à§á§à§Ü (W, A, S, D, Space)
+        if (code) {
+             keys[code] = isStart;
+        } 
+        
+        // §¥§Ý§ñ §Õ§Ú§Ñ§Ô§à§ß§Ñ§Ý§î§ß§í§ç §Ü§ß§à§á§à§Ü (up-left, down-right §Ú §ä.§Õ.)
         if (id.includes('up')) keys['KeyW'] = isStart;
         if (id.includes('down')) keys['KeyS'] = isStart;
         if (id.includes('left')) keys['KeyA'] = isStart;
         if (id.includes('right')) keys['KeyD'] = isStart;
     };
     
-    // §±§â§Ú§Ó§ñ§Ù§í§Ó§Ñ§Ö§Þ §à§Ò§â§Ñ§Ò§à§ä§é§Ú§Ü §Ü§à §Ó§ã§Ö§Þ §Õ§Ú§Ñ§Ô§à§ß§Ñ§Ý§î§ß§í§Þ §Ü§ß§à§á§Ü§Ñ§Þ
-    ['up-left', 'up-right', 'down-left', 'down-right'].forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) {
-            btn.addEventListener('touchstart', (e) => handleDiagonal(e, true));
-            btn.addEventListener('touchend', (e) => handleDiagonal(e, false));
-        }
+    // §±§â§Ú§Ó§ñ§Ù§í§Ó§Ñ§Ö§Þ §à§Ò§â§Ñ§Ò§à§ä§é§Ú§Ü§Ú §Ü §Ü§ß§à§á§Ü§Ñ§Þ
+    buttons.forEach(button => {
+        button.addEventListener('touchstart', (e) => handleControl(e, true));
+        button.addEventListener('touchend', (e) => handleControl(e, false));
+        // §¥§à§Ò§Ñ§Ó§Ý§ñ§Ö§Þ §à§Ò§â§Ñ§Ò§à§ä§Ü§å §Þ§í§ê§Ú §Õ§Ý§ñ §±§¬, §Ö§ã§Ý§Ú §Ü§ß§à§á§Ü§Ú §Ó§Ú§Õ§Ú§Þ§í
+        button.addEventListener('mousedown', (e) => handleControl(e, true));
+        button.addEventListener('mouseup', (e) => handleControl(e, false));
     });
 }
+
 
 window.addEventListener('keydown', (e) => { keys[e.code] = true; });
 window.addEventListener('keyup', (e) => { 
@@ -115,14 +118,33 @@ window.addEventListener('keyup', (e) => {
     if (e.code === 'Space') { guardian.isAttacking = false; }
 });
 
+// ====================================================================
+// §°§¢§»§ª§¦ §¶§µ§¯§¬§¸§ª§ª §ª §µ§´§ª§­§ª§´§½
+// ====================================================================
+
+function showMessage(text) {
+    const messageElement = document.getElementById('message');
+    if (messageElement) {
+        messageElement.textContent = text;
+    }
+}
+
+function updateInfo() {
+    const goldElement = document.getElementById('gold');
+    const riftElement = document.getElementById('rift-health');
+    const waveElement = document.getElementById('current-wave');
+    
+    if (goldElement) goldElement.textContent = gold;
+    if (riftElement) riftElement.textContent = riftHealth;
+    if (waveElement) waveElement.textContent = currentWave;
+}
+
 // §±§â§à§Ó§Ö§â§ñ§Ö§ä, §ñ§Ó§Ý§ñ§Ö§ä§ã§ñ §Ý§Ú §Ù§Ñ§Õ§Ñ§ß§ß§Ñ§ñ §Ü§à§à§â§Õ§Ú§ß§Ñ§ä§Ñ (x, y) §ä§Ñ§Û§Ý§à§Þ §ã§ä§Ö§ß§í (1)
 const isWall = (x, y) => {
-    // §±§â§à§Ó§Ö§â§Ü§Ñ §Ô§â§Ñ§ß§Ú§è Canvas (§é§ä§à§Ò§í §ß§Ö §å§Û§ä§Ú §Ù§Ñ §Ü§â§Ñ§Û)
     if (x < 0 || x >= CANVAS_WIDTH || y < 0 || y >= CANVAS_HEIGHT) return true;
     
     const tileX = Math.floor(x / TILE_SIZE);
     const tileY = Math.floor(y / TILE_SIZE);
-    // §±§â§à§Ó§Ö§â§ñ§Ö§Þ, §ã§å§ë§Ö§ã§ä§Ó§å§Ö§ä §Ý§Ú §ä§Ñ§Û§Ý §Ú §ñ§Ó§Ý§ñ§Ö§ä§ã§ñ §Ý§Ú §à§ß §ã§ä§Ö§ß§à§Û
     return mapGrid[tileY] && mapGrid[tileY][tileX] === 1;
 };
 
@@ -144,9 +166,10 @@ function handleGuardianMovement() {
     let newX = guardian.x + dx;
     let newY = guardian.y + dy;
     
-    // 2. §±§â§à§Ó§Ö§â§ñ§Ö§Þ §Õ§Ó§Ú§Ø§Ö§ß§Ú§Ö §á§à X
+    // 1. §±§â§à§Ó§Ö§â§ñ§Ö§Þ §Õ§Ó§Ú§Ø§Ö§ß§Ú§Ö §á§à X
     let canMoveX = true;
     if (dx !== 0) {
+        // -1/+1 §Õ§Ý§ñ §ß§Ñ§Õ§Ö§Ø§ß§à§Û §á§â§à§Ó§Ö§â§Ü§Ú §Ü§à§Ý§Ý§Ú§Ù§Ú§Ú
         const checkX = newX + (dx > 0 ? halfSize - 1 : -halfSize + 1); 
         if (isWall(checkX, guardian.y - halfSize + 1) || 
             isWall(checkX, guardian.y + halfSize - 1))   
@@ -155,9 +178,10 @@ function handleGuardianMovement() {
         }
     }
     
-    // 3. §±§â§à§Ó§Ö§â§ñ§Ö§Þ §Õ§Ó§Ú§Ø§Ö§ß§Ú§Ö §á§à Y
+    // 2. §±§â§à§Ó§Ö§â§ñ§Ö§Þ §Õ§Ó§Ú§Ø§Ö§ß§Ú§Ö §á§à Y
     let canMoveY = true;
     if (dy !== 0) {
+        // -1/+1 §Õ§Ý§ñ §ß§Ñ§Õ§Ö§Ø§ß§à§Û §á§â§à§Ó§Ö§â§Ü§Ú §Ü§à§Ý§Ý§Ú§Ù§Ú§Ú
         const checkY = newY + (dy > 0 ? halfSize - 1 : -halfSize + 1); 
         if (isWall(guardian.x - halfSize + 1, checkY) || 
             isWall(guardian.x + halfSize - 1, checkY))   
@@ -166,7 +190,7 @@ function handleGuardianMovement() {
         }
     }
     
-    // 4. §±§â§Ú§Þ§Ö§ß§ñ§Ö§Þ §Õ§Ó§Ú§Ø§Ö§ß§Ú§Ö
+    // 3. §±§â§Ú§Þ§Ö§ß§ñ§Ö§Þ §Õ§Ó§Ú§Ø§Ö§ß§Ú§Ö
     if (canMoveX) {
         guardian.x = newX;
     }
@@ -174,14 +198,14 @@ function handleGuardianMovement() {
         guardian.y = newY;
     }
 
-    // 5. §°§Ô§â§Ñ§ß§Ú§é§Ú§Ó§Ñ§Ö§Þ §³§ä§â§Ñ§Ø§Ñ §Ô§â§Ñ§ß§Ú§è§Ñ§Þ§Ú Canvas
+    // §°§Ô§â§Ñ§ß§Ú§é§Ú§Ó§Ñ§Ö§Þ §³§ä§â§Ñ§Ø§Ñ §Ô§â§Ñ§ß§Ú§è§Ñ§Þ§Ú Canvas
     const padding = halfSize;
     if (canvas) {
         guardian.x = Math.max(padding, Math.min(canvas.width - padding, guardian.x));
         guardian.y = Math.max(padding, Math.min(canvas.height - padding, guardian.y));
     }
 
-    // 6. §°§Ò§â§Ñ§Ò§à§ä§Ü§Ñ §Ñ§ä§Ñ§Ü§Ú
+    // 4. §°§Ò§â§Ñ§Ò§à§ä§Ü§Ñ §Ñ§ä§Ñ§Ü§Ú
     if (keys['Space'] && guardian.attackTimer <= 0) {
         guardian.isAttacking = true;
         guardian.attackTimer = guardian.attackCooldown;
@@ -202,14 +226,15 @@ function attackOrcs() {
 }
 
 // ====================================================================
-// §­§°§¤§ª§¬§¡ §¥§£§ª§¨§¦§¯§ª§Á §°§²§¬§°§£ (§ª§³§±§²§¡§£§­§¦§¯§¯§¡§Á §¬§°§­§­§ª§©§ª§Á)
+// §­§°§¤§ª§¬§¡ §¥§£§ª§¨§¦§¯§ª§Á §°§²§¬§°§£ (§°§¬§°§¯§¹§¡§´§¦§­§¾§¯§° §ª§³§±§²§¡§£§­§¦§¯§¯§¡§Á §¬§°§­§­§ª§©§ª§Á)
 // ====================================================================
 
 function handleOrcMovement() {
-    orcs.forEach(orc => {
-        // §±§â§à§Ó§Ö§â§Ü§Ñ §ß§Ñ §á§â§à§ä§Ñ§Ý§Ü§Ú§Ó§Ñ§ß§Ú§Ö (§Ö§ã§Ý§Ú §Ó§í §â§Ö§Ñ§Ý§Ú§Ù§å§Ö§ä§Ö §Ö§Ô§à)
-        // if (orc.isPushed) { ... return; }
+    // §µ§£§¦§­§ª§¹§¦§¯§¯§½§« §°§´§³§´§µ§± §Õ§Ý§ñ §°§â§Ü§à§Ó, §é§ä§à§Ò§í §à§ß§Ú §ß§Ö §Ù§Ñ§Õ§Ö§Ó§Ñ§Ý§Ú §å§Ô§Ý§í
+    const COLLISION_PADDING = 2; 
 
+    orcs.forEach(orc => {
+        
         if (orc.pathIndex >= path.length) {
             orc.health = -1; // §²§Ú§æ§ä §Õ§à§ã§ä§Ú§Ô§ß§å§ä
             riftHealth -= 1;
@@ -217,6 +242,7 @@ function handleOrcMovement() {
         }
 
         const targetTile = path[orc.pathIndex];
+        // §¸§Ö§Ý§î - §è§Ö§ß§ä§â §ã§Ý§Ö§Õ§å§ð§ë§Ö§Ô§à §ä§Ñ§Û§Ý§Ñ
         const targetX = targetTile.x * TILE_SIZE + TILE_SIZE / 2;
         const targetY = targetTile.y * TILE_SIZE + TILE_SIZE / 2;
         
@@ -224,9 +250,8 @@ function handleOrcMovement() {
         const dy = targetY - orc.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        // §²§Ñ§ã§é§Ö§ä §ã§Ü§à§â§à§ã§ä§Ú (§ã §å§é§Ö§ä§à§Þ §Ù§Ñ§Þ§Ö§Õ§Ý§Ö§ß§Ú§ñ §à§ä §Ý§à§Ó§å§ê§Ö§Ü)
+        // §²§Ñ§ã§é§Ö§ä §ã§Ü§à§â§à§ã§ä§Ú
         orc.slowEffect = 0;
-        // (§©§Õ§Ö§ã§î §Õ§à§Ý§Ø§ß§Ñ §Ò§í§ä§î §Ý§à§Ô§Ú§Ü§Ñ §â§Ñ§ã§é§Ö§ä§Ñ orc.slowEffect §à§ä §Ý§à§Ó§å§ê§Ö§Ü)
         const effectiveSpeed = (orc.baseSpeed || 1) * (1 - orc.slowEffect);
         
         if (distance > effectiveSpeed) {
@@ -239,21 +264,22 @@ function handleOrcMovement() {
             let canMoveX = true;
             let canMoveY = true;
             
-            // §±§â§à§Ó§Ö§â§Ü§Ñ §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ §á§à X
+            // §±§â§à§Ó§Ö§â§Ü§Ñ §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ §á§à X (§ã §å§é§Ö§ä§à§Þ COLLISION_PADDING)
             if (moveX !== 0) {
-                const checkX = newX + (moveX > 0 ? halfSize - 1 : -halfSize + 1); 
-                if (isWall(checkX, orc.y - halfSize + 1) || 
-                    isWall(checkX, orc.y + halfSize - 1))   
+                const checkX = newX + (moveX > 0 ? halfSize - COLLISION_PADDING : -halfSize + COLLISION_PADDING); 
+                if (isWall(checkX, orc.y - halfSize + COLLISION_PADDING) || 
+                    isWall(checkX, orc.y + halfSize - COLLISION_PADDING))   
                 {
                     canMoveX = false;
                 }
             }
 
-            // §±§â§à§Ó§Ö§â§Ü§Ñ §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ §á§à Y
+            // §±§â§à§Ó§Ö§â§Ü§Ñ §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ §á§à Y (§ã §å§é§Ö§ä§à§Þ COLLISION_PADDING)
             if (moveY !== 0) {
-                const checkY = newY + (dy > 0 ? halfSize - 1 : -halfSize + 1); 
-                if (isWall(orc.x - halfSize + 1, checkY) || 
-                    isWall(orc.x + halfSize - 1, checkY))   
+                const checkY = newY + (moveY > 0 ? halfSize - COLLISION_PADDING : -halfSize + COLLISION_PADDING); 
+                // §£§¡§¨§¯§°: §ª§ã§á§â§Ñ§Ó§Ý§Ö§ß§Ñ §à§ê§Ú§Ò§Ü§Ñ §Ó §á§â§à§ê§Ý§à§Û §á§â§à§Ó§Ö§â§Ü§Ö: 'orc.x + halfSize - halfSize' §ß§Ñ 'orc.x + halfSize - COLLISION_PADDING'
+                if (isWall(orc.x - halfSize + COLLISION_PADDING, checkY) || 
+                    isWall(orc.x + halfSize - COLLISION_PADDING, checkY))   
                 {
                     canMoveY = false;
                 }
@@ -312,20 +338,27 @@ function placeTrap(x, y) {
     const trapData = TRAPS_DATA[trapMode];
     if (!trapData) return;
 
-    // §±§â§à§Ó§Ö§â§Ü§Ñ, §é§ä§à §ï§ä§à §á§à§Ý (0) §Ú §Ý§à§Ó§å§ê§Ü§Ñ §ß§Ö §ã§ä§à§Ú§ä
-    if (mapGrid[y] && mapGrid[y][x] === 0 && !traps.find(t => Math.floor(t.x / TILE_SIZE) === x && Math.floor(t.y / TILE_SIZE) === y)) {
+    const tileCenter = {
+        x: x * TILE_SIZE + TILE_SIZE / 2, 
+        y: y * TILE_SIZE + TILE_SIZE / 2
+    };
+
+    // §±§â§à§Ó§Ö§â§Ü§Ñ, §é§ä§à §ï§ä§à §á§à§Ý (0), §ß§Ö §â§Ú§æ§ä, §Ú §Ý§à§Ó§å§ê§Ü§Ñ §ß§Ö §ã§ä§à§Ú§ä
+    if (mapGrid[y] && mapGrid[y][x] === 0 && 
+        !(tileCenter.x === rift.x && tileCenter.y === rift.y) &&
+        !traps.find(t => Math.floor(t.x / TILE_SIZE) === x && Math.floor(t.y / TILE_SIZE) === y)) 
+    {
         if (gold >= trapData.cost) {
             gold -= trapData.cost;
             traps.push({
-                x: x * TILE_SIZE + TILE_SIZE / 2, 
-                y: y * TILE_SIZE + TILE_SIZE / 2, 
+                x: tileCenter.x, 
+                y: tileCenter.y, 
                 type: trapMode,
                 damage: trapData.damage || 0, 
                 slow: trapData.slow || 0, 
                 uses: trapData.uses,
                 color: trapData.color, 
                 push: trapData.push || 0,
-                // §¥§Ý§ñ §Ý§à§Ó§å§ê§Ö§Ü §ã §á§Ö§â§Ö§Ù§Ñ§â§ñ§Õ§Ü§à§Û
                 cooldown: 0
             });
             showMessage(`§­§à§Ó§å§ê§Ü§Ñ "${trapData.name}" §å§ã§ä§Ñ§ß§à§Ó§Ý§Ö§ß§Ñ!`);
@@ -334,7 +367,7 @@ function placeTrap(x, y) {
             showMessage('§¯§Ö§Õ§à§ã§ä§Ñ§ä§à§é§ß§à §Ù§à§Ý§à§ä§Ñ!');
         }
     } else {
-        showMessage('§¯§Ö§Ý§î§Ù§ñ §ã§ä§Ñ§Ó§Ú§ä§î §Ý§à§Ó§å§ê§Ü§å §ß§Ñ §ã§ä§Ö§ß§í §Ú§Ý§Ú §å§Ø§Ö §Ù§Ñ§ß§ñ§ä§í§Û §ä§Ñ§Û§Ý!');
+        showMessage('§¯§Ö§Ý§î§Ù§ñ §ã§ä§Ñ§Ó§Ú§ä§î §Ý§à§Ó§å§ê§Ü§å §ß§Ñ §ã§ä§Ö§ß§í, §²§Ú§æ§ä §Ú§Ý§Ú §å§Ø§Ö §Ù§Ñ§ß§ñ§ä§í§Û §ä§Ñ§Û§Ý!');
     }
     trapMode = null; 
 }
@@ -353,9 +386,9 @@ function handleCanvasClick(event) {
 function setupEventHandlers() {
     if (!canvas) return;
     canvas.addEventListener('click', handleCanvasClick);
+    
     // §°§Ò§â§Ñ§Ò§à§ä§Ü§Ñ §ã§Ö§ß§ã§à§â§ß§à§Ô§à §ß§Ñ§Ø§Ñ§ä§Ú§ñ §Õ§Ý§ñ §å§ã§ä§Ñ§ß§à§Ó§Ü§Ú §Ý§à§Ó§å§ê§Ö§Ü
     canvas.addEventListener('touchstart', (e) => {
-        // §±§â§à§Ó§Ö§â§ñ§Ö§Þ, §é§ä§à §ß§Ñ§Ø§Ñ§ä§Ú§Ö §ß§Ö §Ú§ã§ç§à§Õ§Ú§ä §à§ä §Ü§ß§à§á§à§Ü §å§á§â§Ñ§Ó§Ý§Ö§ß§Ú§ñ
         if (e.target === canvas) {
             e.preventDefault(); 
             handleCanvasClick(e.touches[0]);
@@ -363,11 +396,15 @@ function setupEventHandlers() {
     }, { passive: false });
     
     // §±§â§Ú§Ó§ñ§Ù§Ü§Ñ §Ü§ß§à§á§à§Ü §å§á§â§Ñ§Ó§Ý§Ö§ß§Ú§ñ §Ý§à§Ó§å§ê§Ü§Ñ§Þ§Ú §Ó HTML
-    document.querySelector('.controls-panel').addEventListener('click', (e) => {
-        if (e.target.classList.contains('trap-btn')) {
-            const trapType = e.target.textContent.split(' ')[0].substring(1); // §±§à§Ý§å§é§Ñ§Ö§Þ 'ARROW', 'TAR', 'SPRING'
-            setTrapMode(trapType);
-        }
+    document.querySelectorAll('.controls-panel .trap-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            // §±§à§Ý§å§é§Ñ§Ö§Þ §ä§Ú§á §Ý§à§Ó§å§ê§Ü§Ú §Ú§Ù §ä§Ö§Ü§ã§ä§Ñ §Ü§ß§à§á§Ü§Ú, §ß§Ñ§á§â§Ú§Þ§Ö§â "A §³§ä§â§Ö§Ý§í (50)" -> 'ARROW'
+            const text = e.currentTarget.textContent.trim();
+            const type = text.split(' ')[0].substring(1); 
+            if (TRAPS_DATA[type]) {
+                setTrapMode(type);
+            }
+        });
     });
 
     if(document.querySelector('.wave-btn')) {
@@ -431,20 +468,20 @@ function drawMap() {
                 ctx.strokeRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
             }
             // §£§ç§à§Õ/§²§Ú§æ§ä
-            if (x === path[0].x && y === path[0].y) { // §£§ç§à§Õ
+            ctx.fillStyle = 'white';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+
+            if (x === path[0].x && y === path[0].y) { 
                 ctx.fillStyle = '#004B82'; 
                 ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
                 ctx.fillStyle = 'white';
-                ctx.font = '16px Arial';
-                ctx.textAlign = 'center';
                 ctx.fillText('SPAWN', tileX + TILE_SIZE / 2, tileY + TILE_SIZE / 2);
             }
-             if (x === rift.x / TILE_SIZE - 0.5 && y === rift.y / TILE_SIZE - 0.5) { // §²§Ú§æ§ä
+            if (x === rift.x / TILE_SIZE - 0.5 && y === rift.y / TILE_SIZE - 0.5) { 
                 ctx.fillStyle = '#8B0000'; 
                 ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
                 ctx.fillStyle = 'white';
-                ctx.font = '16px Arial';
-                ctx.textAlign = 'center';
                 ctx.fillText('RIFT', tileX + TILE_SIZE / 2, tileY + TILE_SIZE / 2);
             }
         });
@@ -457,7 +494,7 @@ function drawMap() {
         ctx.rect(trap.x - TILE_SIZE/2 + 4, trap.y - TILE_SIZE/2 + 4, TILE_SIZE - 8, TILE_SIZE - 8);
         ctx.fill();
         ctx.globalAlpha = 1.0;
-        // §°§ä§â§Ú§ã§à§Ó§Ü§Ñ §ã§Ú§Þ§Ó§à§Ý§à§Ó §Ý§à§Ó§å§ê§Ö§Ü (§å§á§â§à§ë§Ö§ß§à)
+        
         ctx.fillStyle = 'white';
         ctx.font = '16px Arial';
         ctx.textAlign = 'center';
