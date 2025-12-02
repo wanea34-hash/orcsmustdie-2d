@@ -440,6 +440,8 @@ function startNextWave() {
 
 function drawMap() {
     if (!ctx) return;
+    // §°§é§Ú§ë§Ñ§Ö§Þ Canvas §ß§Ñ §Ü§Ñ§Ø§Õ§à§Þ §Ü§Ñ§Õ§â§Ö
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); 
 
     mapGrid.forEach((row, y) => {
         row.forEach((cell, x) => {
@@ -553,6 +555,12 @@ function update() {
 }
 
 function gameLoop() {
+    // §£§¡§¨§¯§°: §±§â§à§Ó§Ö§â§Ü§Ñ ctx §ß§Ö§à§Ò§ç§à§Õ§Ú§Þ§Ñ, §é§ä§à§Ò§í §Ú§Ù§Ò§Ö§Ø§Ñ§ä§î §à§ê§Ú§Ò§Ü§Ú, §Ö§ã§Ý§Ú §Ü§à§ß§ä§Ö§Ü§ã§ä §ß§Ö §Ò§í§Ý §á§à§Ý§å§é§Ö§ß
+    if (!ctx) {
+        requestAnimationFrame(gameLoop);
+        return;
+    }
+
     update();
     drawMap();
     drawOrcs();
@@ -561,21 +569,30 @@ function gameLoop() {
 }
 
 function initGame() {
+    // 1. §±§à§Ú§ã§Ü Canvas
     canvas = document.getElementById('gameCanvas'); 
     if (!canvas) {
-        console.error("Canvas §ß§Ö §ß§Ñ§Û§Õ§Ö§ß.");
+        console.error("Canvas §ã id 'gameCanvas' §ß§Ö §ß§Ñ§Û§Õ§Ö§ß. §µ§Ò§Ö§Õ§Ú§ä§Ö§ã§î, §é§ä§à §à§ß §Ö§ã§ä§î §Ó HTML.");
         return;
     }
     
-    ctx = canvas.getContext('2d');
+    // 2. §µ§ã§ä§Ñ§ß§à§Ó§Ü§Ñ §â§Ñ§Ù§Þ§Ö§â§à§Ó Canvas
     canvas.width = CANVAS_WIDTH;
     canvas.height = CANVAS_HEIGHT;
+
+    // 3. §±§à§Ý§å§é§Ö§ß§Ú§Ö §Ü§à§ß§ä§Ö§Ü§ã§ä§Ñ (§Ü§â§Ú§ä§Ú§é§Ö§ã§Ü§Ú§Û §ê§Ñ§Ô)
+    ctx = canvas.getContext('2d');
+    if (!ctx) {
+        console.error("§¯§Ö §å§Õ§Ñ§Ý§à§ã§î §á§à§Ý§å§é§Ú§ä§î 2D-§Ü§à§ß§ä§Ö§Ü§ã§ä §â§Ö§ß§Õ§Ö§â§Ú§ß§Ô§Ñ. §£§Ñ§ê §Ò§â§Ñ§å§Ù§Ö§â §á§à§Õ§Õ§Ö§â§Ø§Ú§Ó§Ñ§Ö§ä Canvas?");
+        return;
+    }
 
     updateInfo();
     setupTouchControls(); 
     setupEventHandlers(); 
     showMessage('§µ§á§â§Ñ§Ó§Ý§ñ§Û§ä§Ö §³§ä§â§Ñ§Ø§Ö§Þ (WASD/§³§Ö§ß§ã§à§â), §é§ä§à§Ò§í §Ù§Ñ§ë§Ú§ä§Ú§ä§î §²§Ú§æ§ä! §¯§Ñ§é§ß§Ú§ä§Ö §Ó§à§Ý§ß§å.');
     
+    // 4. §©§Ñ§á§å§ã§Ü §è§Ú§Ü§Ý§Ñ
     gameLoop();
 }
 
