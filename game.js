@@ -301,24 +301,23 @@ function handleOrcMovement() {
         const absDx = Math.abs(dx);
         const absDy = Math.abs(dy);
 
-        // 2. ГАРАНТИРОВАННОЕ ОСЕВОЕ ДВИЖЕНИЕ
+        // 2. СТРОГО ОСЕВОЕ ДВИЖЕНИЕ: Движемся только по одной оси (X или Y)
         if (absDx > absDy) {
-            // Двигаемся по X
+            // Двигаемся преимущественно по X
             moveX = dx > 0 ? effectiveSpeed : -effectiveSpeed;
         } else if (absDy > absDx) {
-            // Двигаемся по Y
+            // Двигаемся преимущественно по Y
             moveY = dy > 0 ? effectiveSpeed : -effectiveSpeed;
         } else {
-             // Если расстояния равны (поворотный узел), даем двигаться по обеим осям
+             // Если расстояния равны (точка поворота), выбираем X (чтобы движение было строго осевым)
              moveX = dx > 0 ? effectiveSpeed : -effectiveSpeed;
-             moveY = dy > 0 ? effectiveSpeed : -effectiveSpeed;
         }
         
         // Корректировка, чтобы не проскочить цель 
         moveX = Math.min(absDx, Math.abs(moveX)) * Math.sign(dx);
         moveY = Math.min(absDy, Math.abs(moveY)) * Math.sign(dy);
 
-        // 3. Применяем движение БЕЗ ПРОВЕРОК КОЛЛИЗИЙ для Орков
+        // 3. Применяем движение
         orc.x += moveX;
         orc.y += moveY;
     });
