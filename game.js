@@ -8,13 +8,13 @@ let ctx;
 const TILE_WIDTH = 16; 
 const TILE_HEIGHT = 12;
 const TILE_SIZE = 40; 
-// Размер Canvas теперь может быть меньше, чем вся карта
-const CANVAS_WIDTH = 800; // 20 тайлов
-const CANVAS_HEIGHT = 480; // 12 тайлов
+// Логические размеры Canvas (для рендеринга 640x480)
+const LOGICAL_CANVAS_WIDTH = TILE_WIDTH * TILE_SIZE; 
+const LOGICAL_CANVAS_HEIGHT = TILE_HEIGHT * TILE_SIZE; 
 
 // Размер всей карты в пикселях (нужен для границ)
-const MAP_WIDTH = 16 * TILE_SIZE; 
-const MAP_HEIGHT = 12 * TILE_SIZE; 
+const MAP_WIDTH = LOGICAL_CANVAS_WIDTH; 
+const MAP_HEIGHT = LOGICAL_CANVAS_HEIGHT; 
 
 let gold = 1000; 
 let riftHealth = 20;
@@ -25,7 +25,7 @@ let traps = [];
 let trapMode = null; 
 let keys = {}; 
 
-// Новая переменная для сдвига камеры
+// Переменная для сдвига камеры
 let cameraOffset = { x: 0, y: 0 };
 
 
@@ -33,7 +33,6 @@ let cameraOffset = { x: 0, y: 0 };
 // ДАННЫЕ ИГРЫ: КАРТА И ПУТЬ
 // ====================================================================
 
-// 0 - пол/путь, 1 - стена
 const mapGrid = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], // Вход (1, 1)
@@ -49,11 +48,10 @@ const mapGrid = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] 
 ];
 
-// Путь, который Орки должны пройти (Координаты тайлов)
 const path = [
     {x: 1, y: 1}, {x: 6, y: 1}, {x: 6, y: 3}, {x: 3, y: 3}, {x: 3, y: 4}, 
     {x: 6, y: 4}, {x: 6, y: 5}, {x: 8, y: 5}, {x: 8, y: 7}, {x: 12, y: 7}, 
-    {x: 12, y: 9}, {x: 10, y: 9}, {x: 10, y: 10}, {x: 14, y: 10} // Финальный тайл - Рифт
+    {x: 12, y: 9}, {x: 10, y: 9}, {x: 10, y: 10}, {x: 14, y: 10} 
 ];
 
 const guardian = {
@@ -89,7 +87,8 @@ const touchControlsMap = {
 };
 
 function setupTouchControls() {
-    const buttons = document.querySelectorAll('.touch-btn, #attack-btn, #up-left, #up-right, #down-left, #down-right');
+    // Включаем поддержку всех сенсорных кнопок
+    const buttons = document.querySelectorAll('.touch-btn, #attack-btn');
     
     const handleControl = (e, isStart) => {
         e.preventDefault();
@@ -100,17 +99,20 @@ function setupTouchControls() {
              keys[code] = isStart;
         } 
         
-        if (id.includes('up')) keys['KeyW'] = isStart;
-        if (id.includes('down')) keys['KeyS'] = isStart;
-        if (id.includes('left')) keys['KeyA'] = isStart;
-        if (id.includes('right')) keys['KeyD'] = isStart;
+        // Для джойстика
+        if (id === 'up') keys['KeyW'] = isStart;
+        if (id === 'down') keys['KeyS'] = isStart;
+        if (id === 'left') keys['KeyA'] = isStart;
+        if (id === 'right') keys['KeyD'] = isStart;
     };
     
     buttons.forEach(button => {
+        // Объединяем touchstart/touchend и mousedown/mouseup для ПК/сенсора
         button.addEventListener('touchstart', (e) => handleControl(e, true));
         button.addEventListener('touchend', (e) => handleControl(e, false));
         button.addEventListener('mousedown', (e) => handleControl(e, true));
         button.addEventListener('mouseup', (e) => handleControl(e, false));
+        button.addEventListener('touchcancel', (e) => handleControl(e, false));
     });
 }
 
@@ -143,7 +145,6 @@ function updateInfo() {
 }
 
 // Проверяет, является ли заданная координата (x, y) тайлом стены (1)
-// ВАЖНО: Эта функция использует абсолютные координаты карты, а не Canvas!
 const isWall = (x, y) => {
     if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) return true;
     
@@ -200,7 +201,7 @@ function handleGuardianMovement() {
         guardian.y = newY;
     }
 
-    // Ограничиваем Стража границами всей Карты (MAP_WIDTH/HEIGHT)
+    // Ограничиваем Стража границами всей Карты
     const padding = halfSize;
     guardian.x = Math.max(padding, Math.min(MAP_WIDTH - padding, guardian.x));
     guardian.y = Math.max(padding, Math.min(MAP_HEIGHT - padding, guardian.y));
@@ -225,12 +226,7 @@ function attackOrcs() {
     });
 }
 
-// ====================================================================
-// ЛОГИКА ДВИЖЕНИЯ ОРКОВ (С ИСПРАВЛЕННОЙ КОЛЛИЗИЕЙ)
-// ====================================================================
-
 function handleOrcMovement() {
-    // УВЕЛИЧЕННЫЙ ОТСТУП: 3 пикселя для предотвращения прохождения сквозь углы
     const COLLISION_PADDING = 3; 
 
     orcs.forEach(orc => {
@@ -249,7 +245,6 @@ function handleOrcMovement() {
         const dy = targetY - orc.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        // Расчет скорости
         orc.slowEffect = 0;
         const effectiveSpeed = (orc.baseSpeed || 1) * (1 - orc.slowEffect);
         
@@ -263,7 +258,6 @@ function handleOrcMovement() {
             let canMoveX = true;
             let canMoveY = true;
             
-            // Проверка движения по X (с учетом COLLISION_PADDING)
             if (moveX !== 0) {
                 const checkX = newX + (moveX > 0 ? halfSize - COLLISION_PADDING : -halfSize + COLLISION_PADDING); 
                 if (isWall(checkX, orc.y - halfSize + COLLISION_PADDING) || 
@@ -273,7 +267,6 @@ function handleOrcMovement() {
                 }
             }
 
-            // Проверка движения по Y (с учетом COLLISION_PADDING)
             if (moveY !== 0) {
                 const checkY = newY + (moveY > 0 ? halfSize - COLLISION_PADDING : -halfSize + COLLISION_PADDING); 
                 if (isWall(orc.x - halfSize + COLLISION_PADDING, checkY) || 
@@ -283,7 +276,6 @@ function handleOrcMovement() {
                 }
             }
 
-            // Применяем разрешенное движение
             if (canMoveX) {
                 orc.x = newX;
             }
@@ -292,7 +284,6 @@ function handleOrcMovement() {
             }
 
         } else {
-            // Орк достиг центра тайла
             orc.x = targetX;
             orc.y = targetY;
             orc.pathIndex++;
@@ -301,7 +292,6 @@ function handleOrcMovement() {
 }
 
 function handleTraps() {
-    // 2. Удаление мертвых орков и начисление золота
     orcs = orcs.filter(orc => {
         if (orc.health <= 0) {
             gold += (orc.reward || 10);
@@ -311,7 +301,6 @@ function handleTraps() {
         return true;
     });
 
-    // 3. Проверка окончания волны
     if (orcs.length === 0 && currentWave > 0 && gameRunning) {
         showMessage(`✅ Волна ${currentWave} успешно отражена!`);
         gameRunning = false;
@@ -324,15 +313,14 @@ function handleTraps() {
 // УПРАВЛЕНИЕ ИГРОВЫМ ПРОЦЕССОМ И КАМЕРА
 // ====================================================================
 
-// Новая функция для расчета сдвига камеры
 function calculateCameraOffset() {
-    // Страж должен быть в центре экрана (CANVAS_WIDTH/2)
-    const targetX = guardian.x - CANVAS_WIDTH / 2;
-    const targetY = guardian.y - CANVAS_HEIGHT / 2;
+    // Страж должен быть в центре экрана (LOGICAL_CANVAS_WIDTH/2)
+    const targetX = guardian.x - LOGICAL_CANVAS_WIDTH / 2;
+    const targetY = guardian.y - LOGICAL_CANVAS_HEIGHT / 2;
     
-    // Ограничиваем сдвиг границами карты, чтобы не показывать пустоту
-    cameraOffset.x = Math.max(0, Math.min(targetX, MAP_WIDTH - CANVAS_WIDTH));
-    cameraOffset.y = Math.max(0, Math.min(targetY, MAP_HEIGHT - CANVAS_HEIGHT));
+    // Ограничиваем сдвиг границами карты
+    cameraOffset.x = Math.max(0, Math.min(targetX, MAP_WIDTH - LOGICAL_CANVAS_WIDTH));
+    cameraOffset.y = Math.max(0, Math.min(targetY, MAP_HEIGHT - LOGICAL_CANVAS_HEIGHT));
 }
 
 function setTrapMode(type) {
@@ -344,7 +332,6 @@ function placeTrap(absX, absY) {
     const trapData = TRAPS_DATA[trapMode];
     if (!trapData) return;
     
-    // Пересчет абсолютных координат в тайлы
     const x = Math.floor(absX / TILE_SIZE);
     const y = Math.floor(absY / TILE_SIZE);
 
@@ -353,7 +340,6 @@ function placeTrap(absX, absY) {
         y: y * TILE_SIZE + TILE_SIZE / 2
     };
 
-    // Проверка, что это пол (0), не рифт/спаун, и ловушка не стоит
     const isSpawnOrRift = (x === path[0].x && y === path[0].y) || (x === rift.x / TILE_SIZE - 0.5 && y === rift.y / TILE_SIZE - 0.5);
     
     if (mapGrid[y] && mapGrid[y][x] === 0 && 
@@ -363,7 +349,7 @@ function placeTrap(absX, absY) {
         if (gold >= trapData.cost) {
             gold -= trapData.cost;
             traps.push({
-                x: tileCenter.x, // Используем абсолютные координаты карты
+                x: tileCenter.x, 
                 y: tileCenter.y, 
                 type: trapMode,
                 damage: trapData.damage || 0, 
@@ -388,10 +374,10 @@ function handleCanvasClick(event) {
     if (!trapMode || !canvas) return;
     const rect = canvas.getBoundingClientRect();
     
-    // Координаты клика относительно Canvas
-    const clickX = (event.clientX - rect.left) / (rect.width / canvas.width);
-    const clickY = (event.clientY - rect.top) / (rect.height / canvas.height);
-
+    // Координаты клика относительно Canvas (с учетом масштабирования)
+    const clickX = (event.clientX - rect.left) * (canvas.width / rect.width);
+    const clickY = (event.clientY - rect.top) * (canvas.height / rect.height);
+    
     // Переводим координаты Canvas в абсолютные координаты Карты (учитываем сдвиг камеры!)
     const absMapX = clickX + cameraOffset.x;
     const absMapY = clickY + cameraOffset.y;
@@ -406,14 +392,15 @@ function setupEventHandlers() {
     canvas.addEventListener('touchstart', (e) => {
         if (e.target === canvas) {
             e.preventDefault(); 
-            handleCanvasClick(e.touches[0]);
+            // Передаем координаты первого касания
+            handleCanvasClick(e.touches[0]); 
         }
     }, { passive: false });
     
     document.querySelectorAll('.controls-panel .trap-btn').forEach(button => {
         button.addEventListener('click', (e) => {
-            const text = e.currentTarget.textContent.trim();
-            const type = text.split(' ')[0].substring(1); 
+            // Берем первую букву кнопки (A, T, S)
+            const type = e.currentTarget.textContent.trim().split(' ')[0].substring(0, 1); 
             if (TRAPS_DATA[type]) {
                 setTrapMode(type);
             }
@@ -458,20 +445,26 @@ function startNextWave() {
 
 
 // ====================================================================
-// ОТОБРАЖЕНИЕ (DRAW) - Все функции используют сдвиг камеры!
+// ОТОБРАЖЕНИЕ (DRAW) - С ИСПОЛЬЗОВАНИЕМ СДВИГА КАМЕРЫ
 // ====================================================================
 
 function drawMap() {
     if (!ctx) return;
     
     // Очищаем Canvas
-    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); 
+    ctx.clearRect(0, 0, LOGICAL_CANVAS_WIDTH, LOGICAL_CANVAS_HEIGHT); 
 
     mapGrid.forEach((row, y) => {
         row.forEach((cell, x) => {
-            // Применяем сдвиг камеры к координатам отрисовки
+            // Применяем сдвиг камеры
             const tileX = x * TILE_SIZE - cameraOffset.x;
             const tileY = y * TILE_SIZE - cameraOffset.y;
+            
+            // Если тайл находится за пределами видимой области, пропускаем его
+            if (tileX + TILE_SIZE < 0 || tileX > LOGICAL_CANVAS_WIDTH ||
+                tileY + TILE_SIZE < 0 || tileY > LOGICAL_CANVAS_HEIGHT) {
+                return;
+            }
 
             ctx.fillStyle = '#b0b0b0'; 
             ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
@@ -494,19 +487,18 @@ function drawMap() {
                 ctx.fillStyle = '#004B82'; 
                 ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
                 ctx.fillStyle = 'white';
-                ctx.fillText('SPAWN', tileX + TILE_SIZE / 2, tileY + TILE_SIZE / 2);
+                ctx.fillText('SPAWN', tileX + TILE_SIZE / 2, tileY + TILE_SIZE / 2 + 5);
             }
             if (x === rift.x / TILE_SIZE - 0.5 && y === rift.y / TILE_SIZE - 0.5) { 
                 ctx.fillStyle = '#8B0000'; 
                 ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
                 ctx.fillStyle = 'white';
-                ctx.fillText('RIFT', tileX + TILE_SIZE / 2, tileY + TILE_SIZE / 2);
+                ctx.fillText('RIFT', tileX + TILE_SIZE / 2, tileY + TILE_SIZE / 2 + 5);
             }
         });
     });
 
     traps.forEach(trap => {
-        // Применяем сдвиг камеры
         const drawX = trap.x - cameraOffset.x;
         const drawY = trap.y - cameraOffset.y;
 
@@ -520,14 +512,13 @@ function drawMap() {
         ctx.fillStyle = 'white';
         ctx.font = '16px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(TRAPS_DATA[trap.type].icon, drawX, drawY);
+        ctx.fillText(TRAPS_DATA[trap.type].icon, drawX, drawY + 5);
     });
 }
 
 function drawOrcs() {
     if (!ctx) return;
     orcs.forEach(orc => {
-        // Применяем сдвиг камеры
         const drawX = orc.x - cameraOffset.x;
         const drawY = orc.y - cameraOffset.y;
 
@@ -551,7 +542,7 @@ function drawOrcs() {
 function drawGuardian() {
     if (!ctx) return;
     
-    // Применяем сдвиг камеры
+    // Страж всегда рисуется в абсолютных координатах мира, но смещенных камерой
     const drawX = guardian.x - cameraOffset.x;
     const drawY = guardian.y - cameraOffset.y;
 
@@ -584,7 +575,6 @@ function update() {
     }
     
     handleGuardianMovement(); 
-    // Обновляем позицию камеры после движения Стража
     calculateCameraOffset();
 
     if (!gameRunning) return;
@@ -606,25 +596,45 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
+// Функция для адаптации размера Canvas
+function resizeCanvas() {
+    if (!canvas) return;
+
+    // 1. Получаем фактическую ширину, которую занимает элемент Canvas в CSS
+    const container = document.getElementById('gameContainer');
+    // Используем ширину контейнера, ограниченную max-width: 800px
+    const displayWidth = container ? container.clientWidth : window.innerWidth; 
+    
+    // 2. Устанавливаем логические размеры Canvas (для рендеринга)
+    canvas.width = LOGICAL_CANVAS_WIDTH;
+    canvas.height = LOGICAL_CANVAS_HEIGHT;
+
+    // 3. Устанавливаем физическую высоту элемента (для CSS), 
+    // чтобы он сохранил пропорции (16:12 или 4:3)
+    const aspectRatio = LOGICAL_CANVAS_HEIGHT / LOGICAL_CANVAS_WIDTH;
+    const displayHeight = displayWidth * aspectRatio;
+    canvas.style.height = `${displayHeight}px`;
+
+    // 4. Пересчитываем смещение камеры 
+    calculateCameraOffset();
+}
+
+
 function initGame() {
     canvas = document.getElementById('gameCanvas'); 
+    
     if (!canvas) {
         console.error("Canvas с id 'gameCanvas' не найден. Убедитесь, что он есть в HTML.");
         return;
     }
     
-    canvas.width = CANVAS_WIDTH;
-    canvas.height = CANVAS_HEIGHT;
-
     ctx = canvas.getContext('2d');
-    if (!ctx) {
-        console.error("Не удалось получить 2D-контекст рендеринга. Ваш браузер поддерживает Canvas?");
-        return;
-    }
     
-    // Инициализируем камеру, чтобы Страж сразу был в кадре
-    calculateCameraOffset(); 
+    // Запускаем адаптацию при инициализации и при изменении размера окна
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
 
+    calculateCameraOffset(); 
     updateInfo();
     setupTouchControls(); 
     setupEventHandlers(); 
