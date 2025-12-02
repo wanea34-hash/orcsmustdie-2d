@@ -243,13 +243,13 @@ function attackOrcs() {
 }
 
 // ====================================================================
-// ФИНАЛЬНАЯ ЛОГИКА ДВИЖЕНИЯ ОРКОВ (УПРОЩЕННЫЙ ПЕРЕХОД ПО ЦЕНТРУ)
+// ЛОГИКА ДВИЖЕНИЯ ОРКОВ (ОСЕВОЙ ПЕРЕХОД С БЕЗОПАСНЫМ ТРИГГЕРОМ)
 // ====================================================================
 
 function handleOrcMovement() {
     // Минимальный допуск для "прыжка" на центр
     const ARRIVAL_TOLERANCE = 5; 
-    // Внутренний отступ для проверки стен (должен быть меньше радиуса)
+    // Внутренний отступ для проверки стен (меньше радиуса)
     const COLLISION_INNER_PADDING = 3; 
 
     orcs.forEach(orc => {
@@ -270,10 +270,10 @@ function handleOrcMovement() {
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         orc.slowEffect = 0;
-        // Уменьшенная скорость для повышения стабильности
+        // Используем базовую скорость, установленную при создании (1.5)
         const effectiveSpeed = (orc.baseSpeed || 1.5) * (1 - orc.slowEffect); 
         
-        // 1. Проверяем, достигнут ли тайл (если близки, прыгаем на точный центр)
+        // 1. Проверяем, достигнут ли тайл (если очень близки, прыгаем на точный центр)
         if (distance <= ARRIVAL_TOLERANCE) { 
             orc.x = targetX;
             orc.y = targetY;
@@ -287,7 +287,7 @@ function handleOrcMovement() {
         const absDx = Math.abs(dx);
         const absDy = Math.abs(dy);
 
-        // 2. ОСЕВОЕ ДВИЖЕНИЕ
+        // 2. ОСЕВОЕ ДВИЖЕНИЕ: Двигаемся ТОЛЬКО по доминирующей оси
         if (absDx > absDy) {
             moveX = dx > 0 ? effectiveSpeed : -effectiveSpeed;
             moveY = 0; 
@@ -295,6 +295,7 @@ function handleOrcMovement() {
             moveY = dy > 0 ? effectiveSpeed : -effectiveSpeed;
             moveX = 0; 
         } else {
+             // Если расстояния равны (обычно на диагонали, но наши пути осевые)
              moveX = dx > 0 ? effectiveSpeed : -effectiveSpeed;
              moveY = 0;
         }
@@ -307,11 +308,13 @@ function handleOrcMovement() {
         let finalMoveX = 0;
         let finalMoveY = 0;
 
-        // Проверка движения по X
+        // *** ВНИМАНИЕ: Проверка коллизий УПРОЩЕНА И УТОЧНЕНА ***
+        // Используем Math.round для борьбы с субпиксельными ошибками
+        
         if (moveX !== 0) {
             const attemptedX = orc.x + moveX;
-            // Используем округление для повышения точности пикселей
             const checkX = Math.round(attemptedX + (moveX > 0 ? halfSize - COLLISION_INNER_PADDING : -halfSize + COLLISION_INNER_PADDING)); 
+            
             if (!isWall(checkX, orc.y - halfSize + COLLISION_INNER_PADDING) && 
                 !isWall(checkX, orc.y + halfSize - COLLISION_INNER_PADDING))   
             {
@@ -319,13 +322,12 @@ function handleOrcMovement() {
             }
         }
 
-        // Проверка движения по Y
         if (moveY !== 0) {
             const attemptedY = orc.y + moveY;
-            // Используем округление для повышения точности пикселей
             const checkY = Math.round(attemptedY + (moveY > 0 ? halfSize - COLLISION_INNER_PADDING : -halfSize + COLLISION_INNER_PADDING)); 
+            
             if (!isWall(orc.x - halfSize + COLLISION_INNER_PADDING, checkY) && 
-                !isWall(orc.x + halfSize - halfSize + COLLISION_INNER_PADDING, checkY))   
+                !isWall(orc.x + halfSize - COLLISION_INNER_PADDING, checkY))   
             {
                 finalMoveY = moveY;
             }
@@ -335,8 +337,9 @@ function handleOrcMovement() {
         orc.x += finalMoveX;
         orc.y += finalMoveY;
         
-        // Если движение заблокировано, но мы все равно в пределах 2 тайлов,
-        // это значит, что застревание произошло на углу. Прыгаем вперед, чтобы преодолеть его.
+        // *** АВАРИЙНЫЙ ТРИГГЕР ДВИЖЕНИЯ ***
+        // Если движение заблокировано (finalMoveX/Y === 0), но мы достаточно близко к узлу
+        // (в пределах 2 тайлов), это означает, что мы застряли на углу. Принудительно переключаемся на следующий узел.
         if (finalMoveX === 0 && finalMoveY === 0 && distance < TILE_SIZE * 2) { 
              orc.pathIndex++;
         }
@@ -353,6 +356,7 @@ function handleTraps() {
         return true;
     });
 
+    // Условие конца волны
     if (orcs.length === 0 && currentWave > 0 && gameRunning) {
         showMessage(`✅ Волна ${currentWave} успешно отражена!`);
         gameRunning = false;
@@ -497,11 +501,11 @@ function startNextWave() {
                 y: selectedPath[0].y * TILE_SIZE + TILE_SIZE / 2,
                 health: orcHealth, 
                 maxHealth: orcHealth, 
-                // Уменьшенная скорость
+                // Базовая скорость
                 baseSpeed: 1.5, 
                 slowEffect: 0, 
                 pathIndex: 1, 
-                // Увеличенный размер для лучшего прохождения
+                // Размер 15 (увеличенный)
                 size: 15, 
                 reward: 10,
                 currentPath: selectedPath 
