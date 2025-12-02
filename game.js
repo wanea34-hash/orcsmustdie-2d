@@ -55,13 +55,23 @@ const mapGrid = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] 
 ];
 
-// §µ§Õ§Ý§Ú§ß§Ö§ß§ß§í§Û §á§å§ä§î, §Ó§Ö§Õ§å§ë§Ú§Û §Ü (22, 16)
-const path = [
-    {x: 1, y: 1}, {x: 6, y: 1}, {x: 6, y: 3}, {x: 3, y: 3}, {x: 3, y: 4}, 
-    {x: 6, y: 4}, {x: 6, y: 5}, {x: 8, y: 5}, {x: 8, y: 7}, {x: 12, y: 7}, 
-    {x: 12, y: 9}, {x: 10, y: 9}, {x: 10, y: 10}, {x: 14, y: 10}, 
-    {x: 14, y: 14}, {x: 1, y: 14}, {x: 1, y: 16}, {x: 22, y: 16} 
-];
+// §°§á§â§Ö§Õ§Ö§Ý§ñ§Ö§Þ §ß§Ö§ã§Ü§à§Ý§î§Ü§à §Ó§à§Ù§Þ§à§Ø§ß§í§ç §á§å§ä§Ö§Û §Õ§Ý§ñ §°§â§Ü§à§Ó
+const PATHS = {
+    // §±§å§ä§î A: §¥§Ó§Ú§Ø§Ö§ß§Ú§Ö §á§â§Ö§Ú§Þ§å§ë§Ö§ã§ä§Ó§Ö§ß§ß§à §á§à §Ó§Ö§â§ç§ß§Ö§Û §Ú §Ý§Ö§Ó§à§Û §é§Ñ§ã§ä§Ú (§ß§Ñ§ê §ã§ä§Ñ§â§í§Û §á§å§ä§î)
+    'A': [
+        {x: 1, y: 1}, {x: 6, y: 1}, {x: 6, y: 3}, {x: 3, y: 3}, {x: 3, y: 4}, 
+        {x: 6, y: 4}, {x: 6, y: 5}, {x: 8, y: 5}, {x: 8, y: 7}, {x: 12, y: 7}, 
+        {x: 12, y: 9}, {x: 10, y: 9}, {x: 10, y: 10}, {x: 14, y: 10}, 
+        {x: 14, y: 14}, {x: 1, y: 14}, {x: 1, y: 16}, {x: 22, y: 16} 
+    ],
+    // §±§å§ä§î B: §¡§Ý§î§ä§Ö§â§ß§Ñ§ä§Ú§Ó§ß§í§Û §á§å§ä§î §é§Ö§â§Ö§Ù §ß§Ú§Ø§ß§ð§ð §Ú §á§â§Ñ§Ó§å§ð §é§Ñ§ã§ä§î
+    'B': [
+        {x: 1, y: 1}, {x: 1, y: 16}, {x: 14, y: 16}, {x: 14, y: 12}, 
+        {x: 22, y: 12}, {x: 22, y: 14}, {x: 20, y: 14}, {x: 20, y: 10},
+        {x: 18, y: 10}, {x: 18, y: 7}, {x: 20, y: 7}, {x: 20, y: 16}, {x: 22, y: 16}
+    ]
+};
+
 
 const guardian = {
     x: 1 * TILE_SIZE + TILE_SIZE / 2, 
@@ -240,14 +250,16 @@ function handleOrcMovement() {
     const ALIGNMENT_THRESHOLD = TILE_SIZE / 2;
 
     orcs.forEach(orc => {
-        
-        if (orc.pathIndex >= path.length) {
+        // §±§à§Ý§å§é§Ñ§Ö§Þ §á§å§ä§î, §ß§Ñ§Ù§ß§Ñ§é§Ö§ß§ß§í§Û §à§â§Ü§å
+        const currentPath = orc.currentPath;
+
+        if (!currentPath || orc.pathIndex >= currentPath.length) {
             orc.health = -1; 
             riftHealth -= 1;
             return;
         }
 
-        const targetTile = path[orc.pathIndex];
+        const targetTile = currentPath[orc.pathIndex];
         const targetX = targetTile.x * TILE_SIZE + TILE_SIZE / 2;
         const targetY = targetTile.y * TILE_SIZE + TILE_SIZE / 2;
         
@@ -271,9 +283,8 @@ function handleOrcMovement() {
         let moveY = 0;
         const halfSize = orc.size / 2;
 
-        // 2. §­§à§Ô§Ú§Ü§Ñ §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ
+        // 2. §­§à§Ô§Ú§Ü§Ñ §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ: §á§â§Ú§ß§å§Õ§Ú§ä§Ö§Ý§î§ß§à§Ö §Ó§í§â§Ñ§Ó§ß§Ú§Ó§Ñ§ß§Ú§Ö, §Ö§ã§Ý§Ú §°§â§Ü §Ò§Ý§Ú§Ù§Ü§à §Ü §è§Ö§Ý§Ú
         if (distance < ALIGNMENT_THRESHOLD) {
-            // §±§â§Ú§ß§å§Õ§Ú§ä§Ö§Ý§î§ß§à§Ö §Õ§Ó§Ú§Ø§Ö§ß§Ú§Ö §á§à §à§Õ§ß§à§Û §à§ã§Ú §Õ§Ý§ñ §á§â§Ö§Õ§à§ä§Ó§â§Ñ§ë§Ö§ß§Ú§ñ §Ù§Ñ§Ü§Ý§Ú§ß§Ú§Ó§Ñ§ß§Ú§ñ §ß§Ñ §å§Ô§Ý§Ñ§ç.
             
             const absDx = Math.abs(dx);
             const absDy = Math.abs(dy);
@@ -302,8 +313,7 @@ function handleOrcMovement() {
         let finalMoveX = 0;
         let finalMoveY = 0;
 
-        // 3. §¬§à§Ý§Ý§Ú§Ù§Ú§Ú (§ä§à§Ý§î§Ü§à §Õ§Ý§ñ §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ, §Ü§à§ä§à§â§à§Ö §Þ§í §à§á§â§Ö§Õ§Ö§Ý§Ú§Ý§Ú)
-
+        // 3. §±§â§à§Ó§Ö§â§Ü§Ñ §Ü§à§Ý§Ý§Ú§Ù§Ú§Û
         // §±§â§à§Ó§Ö§â§Ü§Ñ §Õ§Ó§Ú§Ø§Ö§ß§Ú§ñ §á§à X
         if (moveX !== 0) {
             const attemptedX = orc.x + moveX;
@@ -330,8 +340,7 @@ function handleOrcMovement() {
         orc.x += finalMoveX;
         orc.y += finalMoveY;
         
-        // §¦§ã§Ý§Ú §Õ§Ó§Ú§Ø§Ö§ß§Ú§Ö §á§à §à§Ò§Ö§Ú§Þ §à§ã§ñ§Þ §Ò§í§Ý§à §Ù§Ñ§Ò§Ý§à§Ü§Ú§â§à§Ó§Ñ§ß§à §Ú §°§â§Ü §à§é§Ö§ß§î §Ò§Ý§Ú§Ù§Ü§à §Ü §è§Ö§Ý§Ú, 
-        // §á§â§Ú§ß§å§Õ§Ú§ä§Ö§Ý§î§ß§à §á§Ö§â§Ö§Ü§Ý§ð§é§Ñ§Ö§Þ §å§Ù§Ö§Ý §á§å§ä§Ú, §é§ä§à§Ò§í §Ú§Ù§Ò§Ö§Ø§Ñ§ä§î §Ù§Ñ§Ü§Ý§Ú§ß§Ú§Ó§Ñ§ß§Ú§ñ.
+        // §¦§ã§Ý§Ú §Õ§Ó§Ú§Ø§Ö§ß§Ú§Ö §á§à §à§Ò§Ö§Ú§Þ §à§ã§ñ§Þ §Ù§Ñ§Ò§Ý§à§Ü§Ú§â§à§Ó§Ñ§ß§à, §á§â§Ú§ß§å§Õ§Ú§ä§Ö§Ý§î§ß§à §á§Ö§â§Ö§Ü§Ý§ð§é§Ñ§Ö§Þ §å§Ù§Ö§Ý §á§å§ä§Ú.
         if (finalMoveX === 0 && finalMoveY === 0 && distance < ALIGNMENT_THRESHOLD) {
              orc.pathIndex++;
         }
@@ -388,7 +397,7 @@ function placeTrap(absX, absY) {
         y: y * TILE_SIZE + TILE_SIZE / 2
     };
 
-    const isSpawn = (x === path[0].x && y === path[0].y);
+    const isSpawn = (x === PATHS.A[0].x && y === PATHS.A[0].y); // §±§â§à§Ó§Ö§â§ñ§Ö§Þ §á§à §á§Ö§â§Ó§à§Û §ä§à§é§Ü§Ö §á§å§ä§Ú A (§Ó§ç§à§Õ)
     const isRift = (x === rift.x / TILE_SIZE - 0.5 && y === rift.y / TILE_SIZE - 0.5);
     
     if (y < 0 || y >= mapGrid.length || x < 0 || x >= mapGrid[0].length) {
@@ -477,18 +486,27 @@ function startNextWave() {
     const numOrcs = 5 + currentWave * 2;
     const orcHealth = 100 + currentWave * 10;
     
+    // §±§à§Ý§å§é§Ñ§Ö§Þ §ã§á§Ú§ã§à§Ü §Ó§ã§Ö§ç §Õ§à§ã§ä§å§á§ß§í§ç §á§å§ä§Ö§Û (['A', 'B'])
+    const pathKeys = Object.keys(PATHS);
+
     for (let i = 0; i < numOrcs; i++) {
+        // §³§Ý§å§é§Ñ§Û§ß§í§Û §Ó§í§Ò§à§â §á§å§ä§Ú §Õ§Ý§ñ §Ü§Ñ§Ø§Õ§à§Ô§à §à§â§Ü§Ñ
+        const pathKey = pathKeys[Math.floor(Math.random() * pathKeys.length)];
+        const selectedPath = PATHS[pathKey];
+        
         setTimeout(() => {
             orcs.push({
-                x: path[0].x * TILE_SIZE + TILE_SIZE / 2, 
-                y: path[0].y * TILE_SIZE + TILE_SIZE / 2,
+                x: selectedPath[0].x * TILE_SIZE + TILE_SIZE / 2, 
+                y: selectedPath[0].y * TILE_SIZE + TILE_SIZE / 2,
                 health: orcHealth, 
                 maxHealth: orcHealth, 
                 baseSpeed: 1.5, 
                 slowEffect: 0, 
                 pathIndex: 1, 
                 size: 15,
-                reward: 10
+                reward: 10,
+                // §³§à§ç§â§Ñ§ß§ñ§Ö§Þ §Ó§í§Ò§â§Ñ§ß§ß§í§Û §á§å§ä§î §Ó §à§Ò§ì§Ö§Ü§ä§Ö §à§â§Ü§Ñ
+                currentPath: selectedPath 
             });
         }, i * 500); 
     }
@@ -530,7 +548,7 @@ function drawMap() {
             ctx.font = '16px Arial';
             ctx.textAlign = 'center';
 
-            if (x === path[0].x && y === path[0].y) { 
+            if (x === PATHS.A[0].x && y === PATHS.A[0].y) { 
                 ctx.fillStyle = '#004B82'; 
                 ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
                 ctx.fillStyle = 'white';
