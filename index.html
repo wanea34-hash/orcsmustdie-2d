@@ -13,18 +13,17 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh; /* Занимаем всю высоту для центрирования */
+            min-height: 100vh;
         }
         #game-container {
             width: 100%; 
-            max-width: 600px; /* Оригинальная ширина Canvas */
-            margin: auto; /* Центрируем по вертикали и горизонтали */
+            max-width: 600px; /* Максимальная ширина игры */
+            margin: auto;
             border: 2px solid #555;
             background-color: #222;
         }
         #gameCanvas {
-            /* УДАЛЕНО: width: 600px и height: 400px. 
-               Размеры будут установлены через JS для адаптивности. */
+            /* Размеры будут установлены через JS для адаптивности */
             display: block;
             cursor: crosshair; 
         }
@@ -45,9 +44,9 @@
         button.trap-btn { background-color: #4CAF50; color: white; }
         button.wave-btn { background-color: #d9534f; color: white; }
         
-        /* Стили для сенсорного джойстика */
+        /* Сенсорные элементы управления */
         #touch-controls {
-            position: fixed; /* Используем fixed для стабильности на мобильном */
+            position: fixed; 
             bottom: 20px;
             left: 20px;
             display: flex;
@@ -69,34 +68,7 @@
             user-select: none; 
         }
         #attack-btn {
-            position: fixed; /* Используем fixed для стабильности на мобильном */
+            position: fixed; 
             bottom: 20px;
             right: 20px;
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background-color: #d9534f;
-            border: 3px solid #fff;
-            font-size: 18px;
-        }
-    </style>
-</head>
-<body>
-    <div id="game-container">
-        <h2>ORCS MUST DIE! 2D Прототип (Canvas)</h2>
-        <canvas id="gameCanvas"></canvas>
-        
-        <div id="info-panel">
-            <div class="info-item">
-                <p><strong>Золото:</strong> <span id="gold">1000</span></p>
-            </div>
-            <div class="info-item">
-                <p><strong>Рифт (Жизни):</strong> <span id="rift-health">20</span></p>
-            </div>
-            <div class="info-item">
-                <p><strong>Текущая Волна:</strong> <span id="current-wave">0</span></p>
-            </div>
-        </div>
-        
-        <div class="controls-panel">
-            <button class="trap-btn" onclick="setTrapMode('ARROW')">A Стрелы (50)</button>
+            
