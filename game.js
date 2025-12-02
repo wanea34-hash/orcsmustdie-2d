@@ -30,7 +30,7 @@ let cameraOffset = { x: 0, y: 0 };
 
 
 // ====================================================================
-// ДАННЫЕ ИГРЫ: КАРТА И НОВЫЕ БЕЗОПАСНЫЕ ПУТИ (D и E)
+// ДАННЫЕ ИГРЫ: КАРТА И НОВЫЕ АБСОЛЮТНО БЕЗОПАСНЫЕ ПУТИ (D и G)
 // ====================================================================
 
 // Расширенная карта (24x18)
@@ -57,28 +57,24 @@ const mapGrid = [
 
 // Определяем несколько возможных путей для Орков
 const PATHS = {
-    // Путь D: Максимально простой путь (Верхний, затем вниз)
+    // Путь D: Верхний, затем вниз (4 узла), проверенные координаты
     'D': [
         {x: 1, y: 1}, 
         {x: 14, y: 1},  
-        {x: 14, y: 16},  
-        {x: 22, y: 16}  // RIFT
+        {x: 14, y: 15},  
+        {x: 22, y: 15},
+        {x: 22, y: 16} // RIFT (Конечная точка)
     ],
-    // Путь E: Максимально простой путь (Левый, затем по низу)
-    'E': [
+    // Путь G: Нижний, затем вверх и вправо (6 узлов), проверенные координаты
+    'G': [
         {x: 1, y: 1}, 
         {x: 1, y: 16}, 
-        {x: 20, y: 16}, 
-        {x: 20, y: 12}, 
+        {x: 16, y: 16}, 
+        {x: 16, y: 12},
         {x: 22, y: 12},
         {x: 22, y: 16}  // RIFT
-    ],
-    // Путь B (Оставлен для возможности ручного выбора)
-    'B': [
-        {x: 1, y: 1}, {x: 1, y: 16}, {x: 14, y: 16}, {x: 14, y: 12}, 
-        {x: 22, y: 12}, {x: 22, y: 14}, {x: 20, y: 14}, {x: 20, y: 10},
-        {x: 18, y: 10}, {x: 18, y: 7}, {x: 20, y: 7}, {x: 20, y: 16}, {x: 22, y: 16}
     ]
+    // Удалены A, B, C как ненадёжные
 };
 
 
@@ -278,7 +274,8 @@ function handleOrcMovement() {
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         orc.slowEffect = 0;
-        const effectiveSpeed = (orc.baseSpeed || 1.5) * (1 - orc.slowEffect); 
+        // Используем 2.0 как новый стандарт, если baseSpeed не задан
+        const effectiveSpeed = (orc.baseSpeed || 2.0) * (1 - orc.slowEffect); 
         
         // 1. Проверяем, достигнут ли тайл (с увеличенным допуском)
         if (distance <= ARRIVAL_TOLERANCE) { 
@@ -494,8 +491,8 @@ function startNextWave() {
     gameRunning = true;
     showMessage(`⚡ Волна ${currentWave} началась!`);
 
-    // Используем только максимально надежные пути D и E для случайного выбора
-    const pathKeys = ['D', 'E']; 
+    // Используем только максимально надежные пути D и G для случайного выбора
+    const pathKeys = ['D', 'G']; 
 
     const numOrcs = 5 + currentWave * 2;
     const orcHealth = 100 + currentWave * 10;
@@ -511,7 +508,8 @@ function startNextWave() {
                 y: selectedPath[0].y * TILE_SIZE + TILE_SIZE / 2,
                 health: orcHealth, 
                 maxHealth: orcHealth, 
-                baseSpeed: 1.5, 
+                // Увеличенная скорость для надежности
+                baseSpeed: 2.0, 
                 slowEffect: 0, 
                 pathIndex: 1, 
                 // Безопасный размер
@@ -559,7 +557,7 @@ function drawMap() {
             ctx.font = '16px Arial';
             ctx.textAlign = 'center';
 
-            // Используем первую точку пути D (и E) для проверки спауна
+            // Используем первую точку пути D (и G) для проверки спауна
             if (x === PATHS.D[0].x && y === PATHS.D[0].y) { 
                 ctx.fillStyle = '#004B82'; 
                 ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
