@@ -263,13 +263,14 @@ function attackOrcs() {
 // ====================================================================
 
 function handleOrcMovement() {
-    // Увеличенный допуск: Орк переключится на следующую точку, как только окажется в пределах ЦЕЛОГО тайла.
-    const ARRIVAL_TOLERANCE = TILE_SIZE; 
+    // Уменьшенный допуск для точности: Орк должен быть очень близко к центру тайла, чтобы переключиться.
+    const ARRIVAL_TOLERANCE = 5; 
 
     orcs.forEach(orc => {
         const currentPath = orc.currentPath;
 
         if (!currentPath || orc.pathIndex >= currentPath.length) {
+            // Рифт достигнут
             orc.health = -1; 
             riftHealth -= 1;
             return;
@@ -289,7 +290,7 @@ function handleOrcMovement() {
         
         // 1. Проверяем, достигнут ли тайл (если близки, переключаем цель)
         if (distance <= ARRIVAL_TOLERANCE) { 
-            // Телепортируем на точный центр (targetX, targetY)
+            // Телепортируем на точный центр и переходим к следующему узлу
             orc.x = targetX;
             orc.y = targetY;
             orc.pathIndex++;
@@ -301,19 +302,24 @@ function handleOrcMovement() {
         const absDx = Math.abs(dx);
         const absDy = Math.abs(dy);
 
-        // 2. СТРОГО ОСЕВОЕ ДВИЖЕНИЕ: Движемся только по одной оси (X или Y)
+        // 2. СТРОГО ОСЕВОЕ ДВИЖЕНИЕ:
+        // Движение происходит по той оси, где расстояние до цели больше.
         if (absDx > absDy) {
             // Двигаемся преимущественно по X
             moveX = dx > 0 ? effectiveSpeed : -effectiveSpeed;
+            moveY = 0; // Строго осевое
         } else if (absDy > absDx) {
             // Двигаемся преимущественно по Y
             moveY = dy > 0 ? effectiveSpeed : -effectiveSpeed;
+            moveX = 0; // Строго осевое
         } else {
-             // Если расстояния равны (точка поворота), выбираем X (чтобы движение было строго осевым)
+             // Если расстояния равны (точка поворота, absDx == absDy), выбираем X 
+             // Это предотвращает диагональное движение.
              moveX = dx > 0 ? effectiveSpeed : -effectiveSpeed;
+             moveY = 0;
         }
         
-        // Корректировка, чтобы не проскочить цель 
+        // Корректировка, чтобы не проскочить цель (ограничиваем движение оставшимся расстоянием)
         moveX = Math.min(absDx, Math.abs(moveX)) * Math.sign(dx);
         moveY = Math.min(absDy, Math.abs(moveY)) * Math.sign(dy);
 
