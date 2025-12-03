@@ -1,46 +1,15 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>ORCS MUST DIE! 2D Прототип (Canvas)</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Orcs Must Die 2D Mini</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+    <style>
+        body { margin: 0; padding: 0; background: #000; }
+        canvas { display: block; }
+    </style>
 </head>
 <body>
-    <div id="gameContainer">
-        <h1>ORCS MUST DIE! 2D Прототип (Canvas)</h1>
-        
-        <canvas id="gameCanvas" width="640" height="480"></canvas>
-        
-        <div class="info-panel">
-            <span>Золото: <span id="gold">1000</span></span>
-            <span>Рифт (Жизни): <span id="rift-health">20</span></span>
-            <span>Текущая Волна: <span id="current-wave">0</span></span>
-        </div>
-        
-        <div class="controls-panel">
-            <button class="trap-btn" data-type="A">A Стрелы (50)</button>
-            <button class="trap-btn" data-type="T">T Смола (25)</button>
-            <button class="trap-btn" data-type="S">S Батут (75)</button>
-        </div>
-        
-        <button class="wave-btn" id="start-wave-btn">Начать Волну!</button>
-
-        <p id="message">Управляйте Стражем (WASD/Сенсор), чтобы защитить Рифт! Начните волну.</p>
-
-        <div class="mobile-controls">
-            <div class="d-pad">
-                <button id="up" class="touch-btn">W</button>
-                <div class="horizontal">
-                    <button id="left" class="touch-btn">A</button>
-                    <button id="right" class="touch-btn">D</button>
-                </div>
-                <button id="down" class="touch-btn">S</button>
-            </div>
-            <button id="attack-btn" class="touch-btn attack-btn">УДАР</button>
-        </div>
-    </div>
-
-    <script src="game.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
